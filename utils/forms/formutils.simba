@@ -1,6 +1,5 @@
 (*
-Form Utilities
-==============
+# Form Utilities
 Forms and components extensions.
 
 This files contains custom components and methods to be used in forms.
@@ -9,7 +8,6 @@ This files contains custom components and methods to be used in forms.
 {$IFNDEF WL_UTILS}
   {$I WaspLib/utils.simba}
 {$ENDIF}
-
 
 function TControl.GetScreenDPI(): Int32; static;
 var
@@ -26,10 +24,10 @@ begin
 end;
 
 (*
-TControl.IsInitiated
-~~~~~~~~~~~~~~~~~~~~
-.. pascal:: function TControl.IsInitiated(): Boolean;
-
+## TControl.IsInitiated
+```pascal
+function TControl.IsInitiated(): Boolean;
+```
 Checks if the control has already been initiated.
 *)
 function TControl.IsInitiated(): Boolean;
@@ -38,13 +36,12 @@ begin
 end;
 
 (*
-TControl.Set
-~~~~~~~~~~~~
-.. pascal::
-  procedure TControl.SetTooltip(value: String);
-  procedure TControl.SetFontColor(value: Int32);
-  procedure TControl.SetChildsFontColor(value: Int32);
-
+## TControl.Set
+```pascal
+procedure TControl.SetTooltip(value: String);
+procedure TControl.SetFontColor(value: Int32);
+procedure TControl.SetChildsFontColor(value: Int32);
+```
 TControl.Set methods. Their names are self explanatory.
 
 For some reason TControl.SetHint cannot be overriden, so a custom method for this was made.
@@ -71,37 +68,41 @@ begin
     font.setColor(value);
 end;
 
+procedure TControl.SetFontColorEx(color: TColor);
+begin
+  Self.GetFont().setColor(color);
+end;
+
+procedure TControl.SetFontSize(size: Int32);
+begin
+  Self.GetFont().setSize(size);
+end;
+
 procedure TControl.SetChildsFontColor(value: Int32);
 var
-  i, hi: Int32;
+  i: Int32;
   child: TControl;
 begin
-  hi := Self.getComponentCount();
-
-  if hi > 0 then
-    for i := 0 to hi - 1 do
-    begin
-      child := Self.GetComponent(i);
-      child.SetChildsFontColor(value);
-    end;
+  for i := 0 to Self.getComponentCount() - 1 do
+  begin
+    child := Self.GetComponent(i);
+    child.SetChildsFontColor(value);
+  end;
 
   Self.SetFontColor(value);
 end;
 
 procedure TControl.SetAllChildsFontColor(value: Int32);
 var
-  i, hi: Int32;
+  i: Int32;
   child: TControl;
 begin
-  hi := Self.getComponentCount();
-
-  if hi > 0 then
-    for i := 0 to hi - 1 do
-    begin
-      child := Self.GetComponent(i);
-      if child.getFont().getColor() = 536870912 then
-        child.SetChildsFontColor(value);
-    end;
+  for i := 0 to Self.getComponentCount() - 1 do
+  begin
+    child := Self.GetComponent(i);
+    if child.getFont().getColor() = 536870912 then
+      child.SetChildsFontColor(value);
+  end;
 
   if Self.getFont().getColor() = 536870912 then
     Self.SetFontColor(value);
@@ -109,12 +110,11 @@ end;
 
 
 (*
-TControl.Get
-~~~~~~~~~~~~
-.. pascal::
-  function TControl.GetRight(): Int32;
-  function TControl.GetBottom(): Int32;
-
+## TControl.Get
+```pascal
+function TControl.GetRight(): Int32;
+function TControl.GetBottom(): Int32;
+```
 TControl.Get methods. Their names are self explanatory.
 *)
 function TControl.GetRight(): Int32;
@@ -133,54 +133,90 @@ begin
   Result := (Self <> nil) and (Self.GetName() = name);
 end;
 
+(*
+## TComponent.GetChild
+```pascal
+function TComponent.GetChild(name: TComponentName): TComponent;
+```
+Recursively search for a children with the specified name.
+*)
 function TComponent.GetChild(name: TComponentName): TComponent;
 var
-  i, hi: Int32;
+  i: Int32;
   child: TComponent;
 begin
-  if Self = nil then
-    Exit;
+  if Self = nil then Exit;
 
-  if Self.NameMatch(name) then
-    Exit(Self);
+  if Self.GetName() = name then Exit(Self);
 
-  hi := Self.getComponentCount();
-
-  if hi >= 0 then
-    for i := 0 to hi - 1 do
-    begin
-      child := Self.GetComponent(i);
-
-      if child.NameMatch(name) then
-        Exit(child);
-
-      Result := child.GetChild(name);
-      if Result <> nil then
-        Exit;
-    end;
+  for i := 0 to Self.getComponentCount() - 1 do
+  begin
+    child := Self.GetComponent(i);
+    Result := child.GetChild(name);
+    if Result <> nil then Exit;
+  end;
 
   Result := nil;
 end;
 
 (*
-Component.NumberField
-~~~~~~~~~~~~~~~~~~~~~
-.. pascal:: procedure TComponent.NumberField({$H-}sender: TObject;{$H+} var key: char);
+## TComponent.RemoveChildren
+```pascal
+procedure TComponent.RemoveChildren(release: Boolean = False);
+```
+Recursively remove children from a parent. To also free the parent set **release** to true.
+All children are freed when using this.
+*)
+procedure TComponent.RemoveChildren(release: Boolean = False);
+var
+  child: TComponent;
+begin
+  if Self.getComponentCount() = 0 then
+  begin
+    if release then Self.Free();
+    Exit;
+  end;
 
+  child := Self.GetComponent(0);
+  Self.RemoveComponent(child);
+  child.RemoveChildren(True);
+  Self.RemoveChildren(release);
+end;
+
+
+(*
+## Component.NumberField
+```pascal
+procedure TComponent.NumberField(sender: TObject; var key: char);
+```
 Callback method to limit user input to numbers only and backspace.
 This numbers can be Ints or Doubles.
 *)
 procedure TComponent.NumberField({$H-}sender: TObject;{$H+} var key: char);
 begin
-  if not (key in ['0'..'9', #8, '.']) then
-    key := #0;
+  if not (key in ['0'..'9', #8]) then key := #0;
+end;
+
+procedure TComponent.FloatField(sender: TObject; var key: char);
+begin
+  case key of
+    '0'..'9', #8: ;
+    '.': if TCustomEdit(sender).getText().Contains('.') then key := #0;
+    else key := #0;
+  end;
+end;
+
+
+procedure TComponent.MailField({$H-}sender: TObject;{$H+} var key: char);
+begin
+  if key = ' ' then key := #0;
 end;
 
 (*
-Component.TimeField
-~~~~~~~~~~~~~~~~~~~
-.. pascal:: procedure TComponent.TimeField({$H-}sender: TObject;{$H+} var key: char);
-
+## Component.TimeField
+```pascal
+procedure TComponent.TimeField(sender: TObject; var key: char);
+```
 Callback method to limit user input to numbers only, backspace and a few characters used in time.
 *)
 procedure TComponent.TimeField({$H-}sender: TObject;{$H+} var key: char);
@@ -190,10 +226,10 @@ begin
 end;
 
 (*
-Component.NumberArrayField
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. pascal:: procedure TComponent.NumberArrayField({$H-}sender: TObject;{$H+} var key: char);
-
+## Component.NumberArrayField
+```pascal
+procedure TComponent.NumberArrayField(sender: TObject; var key: char);
+```
 Callback method to limit user input to a TIntegerArray.
 *)
 procedure TComponent.NumberArrayField({$H-}sender: TObject;{$H+} var key: char);
@@ -203,9 +239,10 @@ begin
 end;
 
 (*
-Control.OpenLink
-~~~~~~~~~~~~~~~~
-.. pascal:: procedure TControl.OpenLink(sender: TObject);
+## Control.OpenLink
+```pascal
+procedure TControl.OpenLink(sender: TObject);
+```
 
 Open the link in the control caption.
 *)
@@ -222,9 +259,10 @@ end;
 
 
 (*
-CustomEdit.IsEmpty
-~~~~~~~~~~~~~~~~~~
-.. pascal:: function TCustomEdit.IsEmpty(): Boolean;
+## CustomEdit.IsEmpty
+```pascal
+function TCustomEdit.IsEmpty(): Boolean;
+```
 
 Returns true or false if the TCustomEdit (TEdit and TMemo) are empty.
 *)
@@ -234,10 +272,10 @@ begin
 end;
 
 (*
-CustomEdit.GetIntegerArray
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. pascal:: function TCustomEdit.GetIntegerArray(): TIntegerArray;
-
+## CustomEdit.GetIntegerArray
+```pascal
+function TCustomEdit.GetIntegerArray(): TIntegerArray;
+```
 Returns the TIntegerArray in the TCustomEdit (TEdit and TMemo).
 It's probably a good idea to limit the TCustomEdit input with **TComponent.IntArrayField()**.
 *)
@@ -250,7 +288,7 @@ begin
 
   for s in str.Split(',') do
   begin
-    w := s.trim().ExtractInteger();
+    w := s.Strip().ExtractNumber();
 
     if min = max then
       Result += w
@@ -264,30 +302,62 @@ end;
 
 
 (*
-Create
-~~~~~~
-.. pascal::
-  procedure TPanel.Create(owner: TControl);
-  procedure TPageControl.Create(owner: TControl);
-  procedure TTabSheet.Create(owner: TControl);
-  procedure TImage.Create(owner: TControl);
-  procedure TLabel.Create(owner: TControl);
-  procedure TEdit.Create(owner: TControl);
-  procedure TButton.Create(owner: TControl);
-  procedure TCheckBox.Create(owner: TControl);
-  procedure TRadioButton.Create(owner: TControl);
-  procedure TComboBox.Create(owner: TControl);
-  procedure TListBox.Create(owner: TControl);
-  procedure TMemo.Create(owner: TControl);
-  procedure TTrackBar.Create(owner: TControl);
-
-**.Init()** and **.SetParent()** in a single method.
+## TControl.Create
+```pascal
+procedure TPanel.Create(owner: TControl);
+procedure TPageControl.Create(owner: TControl);
+procedure TTabSheet.Create(owner: TControl);
+procedure TImage.Create(owner: TControl);
+procedure TLabel.Create(owner: TControl);
+procedure TEdit.Create(owner: TControl);
+procedure TButton.Create(owner: TControl);
+procedure TCheckBox.Create(owner: TControl);
+procedure TRadioButton.Create(owner: TControl);
+procedure TComboBox.Create(owner: TControl);
+procedure TListBox.Create(owner: TControl);
+procedure TMemo.Create(owner: TControl);
+procedure TTrackBar.Create(owner: TControl);
+```
+`TControl.Init()` and `TControl.SetParent()` in a single method.
+Since this is something that has to be done almost always this wrapper was made.
 *)
 procedure TPanel.Create(owner: TControl);
 begin
   Self.Init(owner);
   Self.SetParent(owner);
 end;
+
+procedure TPanel.Create(owner: TControl; topleft, dimensions: TPoint); overload;
+begin
+  Self.Create(owner);
+  if topleft.X > 0 then Self.SetLeft(topleft.X);
+  if topleft.Y > 0 then Self.SetTop(topleft.Y);
+  if dimensions.X > 0 then Self.SetWidth(dimensions.X);
+  if dimensions.Y > 0 then Self.SetHeight(dimensions.Y);
+end;
+
+procedure TPanel.Create(owner: TControl; topleft, dimensions: TPoint; adjustDPI: Boolean); overload;
+begin
+  if adjustDPI then
+  begin
+    topleft := [TControl.AdjustToDPI(topleft.X), TControl.AdjustToDPI(topleft.Y)];
+    dimensions := [TControl.AdjustToDPI(dimensions.X), TControl.AdjustToDPI(dimensions.Y)];
+  end;
+
+  Self.Create(owner, topleft, dimensions);
+end;
+
+procedure TPanel.Create(owner: TControl; topleft, dimensions, offset: TPoint; adjustDPI: Boolean); overload;
+begin
+  if adjustDPI then
+  begin
+    topleft := [TControl.AdjustToDPI(topleft.X), TControl.AdjustToDPI(topleft.Y)];
+    dimensions := [TControl.AdjustToDPI(dimensions.X), TControl.AdjustToDPI(dimensions.Y)];
+  end;
+
+  Self.Create(owner, topleft + offset, dimensions, False);
+end;
+
 
 procedure TPageControl.Create(owner: TControl);
 begin
@@ -301,11 +371,13 @@ begin
   Self.SetParent(owner);
 end;
 
+
 procedure TImage.Create(owner: TControl);
 begin
   Self.Init(owner);
   Self.SetParent(owner);
 end;
+
 
 procedure TLabel.Create(owner: TControl);
 begin
@@ -313,41 +385,79 @@ begin
   Self.SetParent(owner);
 end;
 
+procedure TLabel.Create(owner: TControl; caption, hint: String; topleft, dimensions: TPoint); overload;
+begin
+  Self.Create(owner);
+  if topleft.X > 0 then Self.SetLeft(topleft.X);
+  if topleft.Y > 0 then Self.SetTop(topleft.Y);
+  if dimensions.X > 0 then Self.SetWidth(dimensions.X);
+  if dimensions.Y > 0 then Self.SetHeight(dimensions.Y);
+  Self.SetCaption(caption);
+  Self.SetHint(hint);
+end;
+
+procedure TLabel.Create(owner: TControl; caption, hint: String; topleft, dimensions: TPoint; adjustDPI: Boolean); overload;
+begin
+  if adjustDPI then
+  begin
+    topLeft := [TControl.AdjustToDPI(topLeft.X), TControl.AdjustToDPI(topLeft.Y)];
+    dimensions := [TControl.AdjustToDPI(dimensions.X), TControl.AdjustToDPI(dimensions.Y)];
+  end;
+
+  Self.Create(owner, caption, hint, topLeft, dimensions);
+end;
+
+procedure TLabel.Create(owner: TControl; caption, hint: String; topleft, dimensions, offset: TPoint; adjustDPI: Boolean); overload;
+begin
+  if adjustDPI then
+  begin
+    topLeft := [TControl.AdjustToDPI(topLeft.X), TControl.AdjustToDPI(topLeft.Y)];
+    dimensions := [TControl.AdjustToDPI(dimensions.X), TControl.AdjustToDPI(dimensions.Y)];
+  end;
+
+  Self.Create(owner, caption, hint, topleft + offset, dimensions, False);
+end;
+
+
 procedure TEdit.Create(owner: TControl);
 begin
   Self.Init(owner);
   Self.SetParent(owner);
 end;
 
-procedure TButton.Create(owner: TControl);
+procedure TEdit.Create(owner: TControl; caption, hint: String; topleft, dimensions: TPoint); overload;
 begin
-  Self.Init(owner);
-  Self.SetParent(owner);
+  Self.Create(owner);
+  if topleft.X > 0 then Self.SetLeft(topleft.X);
+  if topleft.Y > 0 then Self.SetTop(topleft.Y);
+  if dimensions.X > 0 then Self.SetWidth(dimensions.X);
+  if dimensions.Y > 0 then Self.SetHeight(dimensions.Y);
+  Self.SetCaption(caption);
+  Self.SetHint(hint);
 end;
 
-procedure TCheckBox.Create(owner: TControl);
+procedure TEdit.Create(owner: TControl; caption, hint: String; topleft, dimensions: TPoint; adjustDPI: Boolean); overload;
 begin
-  Self.Init(owner);
-  Self.SetParent(owner);
+  if adjustDPI then
+  begin
+    topLeft := [TControl.AdjustToDPI(topLeft.X), TControl.AdjustToDPI(topLeft.Y)];
+    dimensions := [TControl.AdjustToDPI(dimensions.X), TControl.AdjustToDPI(dimensions.Y)];
+  end;
+
+  Self.Create(owner, caption, hint, topLeft, dimensions);
 end;
 
-procedure TRadioButton.Create(owner: TControl);
+procedure TEdit.Create(owner: TControl; caption, hint: String; topleft, dimensions, offset: TPoint; adjustDPI: Boolean); overload;
 begin
-  Self.Init(owner);
-  Self.SetParent(owner);
+  if adjustDPI then
+  begin
+    topLeft := [TControl.AdjustToDPI(topLeft.X), TControl.AdjustToDPI(topLeft.Y)];
+    dimensions := [TControl.AdjustToDPI(dimensions.X), TControl.AdjustToDPI(dimensions.Y)];
+  end;
+
+  Self.Create(owner, caption, hint, topleft + offset, dimensions, False);
 end;
 
-procedure TComboBox.Create(owner: TControl);
-begin
-  Self.Init(owner);
-  Self.SetParent(owner);
-end;
-
-procedure TListBox.Create(owner: TControl);
-begin
-  Self.Init(owner);
-  Self.SetParent(owner);
-end;
 
 procedure TMemo.Create(owner: TControl);
 begin
@@ -355,25 +465,329 @@ begin
   Self.SetParent(owner);
 end;
 
+procedure TMemo.Create(owner: TControl; caption, hint: String; topleft, dimensions: TPoint); overload;
+begin
+  Self.Create(owner);
+  if topleft.X > 0 then Self.SetLeft(topleft.X);
+  if topleft.Y > 0 then Self.SetTop(topleft.Y);
+  if dimensions.X > 0 then Self.SetWidth(dimensions.X);
+  if dimensions.Y > 0 then Self.SetHeight(dimensions.Y);
+  Self.SetCaption(caption);
+  Self.SetHint(hint);
+end;
+
+procedure TMemo.Create(owner: TControl; caption, hint: String; topleft, dimensions: TPoint; adjustDPI: Boolean); overload;
+begin
+  if adjustDPI then
+  begin
+    topLeft := [TControl.AdjustToDPI(topLeft.X), TControl.AdjustToDPI(topLeft.Y)];
+    dimensions := [TControl.AdjustToDPI(dimensions.X), TControl.AdjustToDPI(dimensions.Y)];
+  end;
+
+  Self.Create(owner, caption, hint, topLeft, dimensions);
+end;
+
+procedure TMemo.Create(owner: TControl; caption, hint: String; topleft, dimensions, offset: TPoint; adjustDPI: Boolean); overload;
+begin
+  if adjustDPI then
+  begin
+    topLeft := [TControl.AdjustToDPI(topLeft.X), TControl.AdjustToDPI(topLeft.Y)];
+    dimensions := [TControl.AdjustToDPI(dimensions.X), TControl.AdjustToDPI(dimensions.Y)];
+  end;
+
+  Self.Create(owner, caption, hint, topleft + offset, dimensions, False);
+end;
+
+
+
+procedure TButton.Create(owner: TControl);
+begin
+  Self.Init(owner);
+  Self.SetParent(owner);
+end;
+
+procedure TButton.Create(owner: TControl; caption, hint: String; topleft, dimensions: TPoint); overload;
+begin
+  Self.Create(owner);
+  if topleft.X > 0 then Self.SetLeft(topleft.X);
+  if topleft.Y > 0 then Self.SetTop(topleft.Y);
+  if dimensions.X > 0 then Self.SetWidth(dimensions.X);
+  if dimensions.Y > 0 then Self.SetHeight(dimensions.Y);
+  Self.SetCaption(caption);
+  Self.SetHint(hint);
+end;
+
+procedure TButton.Create(owner: TControl; caption, hint: String; topleft, dimensions: TPoint; adjustDPI: Boolean); overload;
+begin
+  if adjustDPI then
+  begin
+    topLeft := [TControl.AdjustToDPI(topLeft.X), TControl.AdjustToDPI(topLeft.Y)];
+    dimensions := [TControl.AdjustToDPI(dimensions.X), TControl.AdjustToDPI(dimensions.Y)];
+  end;
+
+  Self.Create(owner, caption, hint, topLeft, dimensions);
+end;
+
+procedure TButton.Create(owner: TControl; caption, hint: String; topleft, dimensions, offset: TPoint; adjustDPI: Boolean); overload;
+begin
+  if adjustDPI then
+  begin
+    topLeft := [TControl.AdjustToDPI(topLeft.X), TControl.AdjustToDPI(topLeft.Y)];
+    dimensions := [TControl.AdjustToDPI(dimensions.X), TControl.AdjustToDPI(dimensions.Y)];
+  end;
+
+  Self.Create(owner, caption, hint, topleft + offset, dimensions, False);
+end;
+
+
+procedure TCheckBox.Create(owner: TControl);
+begin
+  Self.Init(owner);
+  Self.SetParent(owner);
+end;
+
+procedure TCheckBox.Create(owner: TControl; caption, hint: String; topleft, dimensions: TPoint); overload;
+begin
+  Self.Create(owner);
+  if topleft.X > 0 then Self.SetLeft(topleft.X);
+  if topleft.Y > 0 then Self.SetTop(topleft.Y);
+  if dimensions.X > 0 then Self.SetWidth(dimensions.X);
+  if dimensions.Y > 0 then Self.SetHeight(dimensions.Y);
+  Self.SetCaption(caption);
+  Self.SetHint(hint);
+end;
+
+procedure TCheckBox.Create(owner: TControl; caption, hint: String; topleft, dimensions: TPoint; adjustDPI: Boolean); overload;
+begin
+  if adjustDPI then
+  begin
+    topLeft := [TControl.AdjustToDPI(topLeft.X), TControl.AdjustToDPI(topLeft.Y)];
+    dimensions := [TControl.AdjustToDPI(dimensions.X), TControl.AdjustToDPI(dimensions.Y)];
+  end;
+
+  Self.Create(owner, caption, hint, topLeft, dimensions);
+end;
+
+procedure TCheckBox.Create(owner: TControl; caption, hint: String; topleft, dimensions, offset: TPoint; adjustDPI: Boolean); overload;
+begin
+  if adjustDPI then
+  begin
+    topLeft := [TControl.AdjustToDPI(topLeft.X), TControl.AdjustToDPI(topLeft.Y)];
+    dimensions := [TControl.AdjustToDPI(dimensions.X), TControl.AdjustToDPI(dimensions.Y)];
+  end;
+
+  Self.Create(owner, caption, hint, topleft + offset, dimensions, False);
+end;
+
+
+
+procedure TRadioButton.Create(owner: TControl);
+begin
+  Self.Init(owner);
+  Self.SetParent(owner);
+end;
+
+procedure TRadioButton.Create(owner: TControl; caption, hint: String; topleft, dimensions: TPoint); overload;
+begin
+  Self.Create(owner);
+  if topleft.X > 0 then Self.SetLeft(topleft.X);
+  if topleft.Y > 0 then Self.SetTop(topleft.Y);
+  if dimensions.X > 0 then Self.SetWidth(dimensions.X);
+  if dimensions.Y > 0 then Self.SetHeight(dimensions.Y);
+  Self.SetCaption(caption);
+  Self.SetHint(hint);
+end;
+
+procedure TRadioButton.Create(owner: TControl; caption, hint: String; topleft, dimensions: TPoint; adjustDPI: Boolean); overload;
+begin
+  if adjustDPI then
+  begin
+    topLeft := [TControl.AdjustToDPI(topLeft.X), TControl.AdjustToDPI(topLeft.Y)];
+    dimensions := [TControl.AdjustToDPI(dimensions.X), TControl.AdjustToDPI(dimensions.Y)];
+  end;
+
+  Self.Create(owner, caption, hint, topLeft, dimensions);
+end;
+
+procedure TRadioButton.Create(owner: TControl; caption, hint: String; topleft, dimensions, offset: TPoint; adjustDPI: Boolean); overload;
+begin
+  if adjustDPI then
+  begin
+    topLeft := [TControl.AdjustToDPI(topLeft.X), TControl.AdjustToDPI(topLeft.Y)];
+    dimensions := [TControl.AdjustToDPI(dimensions.X), TControl.AdjustToDPI(dimensions.Y)];
+  end;
+
+  Self.Create(owner, caption, hint, topleft + offset, dimensions, False);
+end;
+
+
+procedure TComboBox.Create(owner: TControl);
+begin
+  Self.Init(owner);
+  Self.SetParent(owner);
+  Self.setStyle(TComboBoxStyle.csDropDownList);
+end;
+
+procedure TComboBox.Create(owner: TControl; caption, hint: String; topleft, dimensions: TPoint); overload;
+begin
+  Self.Create(owner);
+  if topleft.X > 0 then Self.SetLeft(topleft.X);
+  if topleft.Y > 0 then Self.SetTop(topleft.Y);
+  if dimensions.X > 0 then Self.SetWidth(dimensions.X);
+  if dimensions.Y > 0 then Self.SetHeight(dimensions.Y);
+  Self.SetCaption(caption);
+  Self.SetHint(hint);
+end;
+
+procedure TComboBox.Create(owner: TControl; caption, hint: String; topleft, dimensions: TPoint; adjustDPI: Boolean); overload;
+begin
+  if adjustDPI then
+  begin
+    topLeft := [TControl.AdjustToDPI(topLeft.X), TControl.AdjustToDPI(topLeft.Y)];
+    dimensions := [TControl.AdjustToDPI(dimensions.X), TControl.AdjustToDPI(dimensions.Y)];
+  end;
+
+  Self.Create(owner, caption, hint, topLeft, dimensions);
+end;
+
+procedure TComboBox.Create(owner: TControl; caption, hint: String; topleft, dimensions, offset: TPoint; adjustDPI: Boolean); overload;
+begin
+  if adjustDPI then
+  begin
+    topLeft := [TControl.AdjustToDPI(topLeft.X), TControl.AdjustToDPI(topLeft.Y)];
+    dimensions := [TControl.AdjustToDPI(dimensions.X), TControl.AdjustToDPI(dimensions.Y)];
+  end;
+
+  Self.Create(owner, caption, hint, topleft + offset, dimensions, False);
+end;
+
+
+procedure TListBox.Create(owner: TControl);
+begin
+  Self.Init(owner);
+  Self.SetParent(owner);
+end;
+
+procedure TListBox.Create(owner: TControl; caption, hint: String; topleft, dimensions: TPoint); overload;
+begin
+  Self.Create(owner);
+  if topleft.X > 0 then Self.SetLeft(topleft.X);
+  if topleft.Y > 0 then Self.SetTop(topleft.Y);
+  if dimensions.X > 0 then Self.SetWidth(dimensions.X);
+  if dimensions.Y > 0 then Self.SetHeight(dimensions.Y);
+  Self.SetCaption(caption);
+  Self.SetHint(hint);
+end;
+
+procedure TListBox.Create(owner: TControl; caption, hint: String; topleft, dimensions: TPoint; adjustDPI: Boolean); overload;
+begin
+  if adjustDPI then
+  begin
+    topLeft := [TControl.AdjustToDPI(topLeft.X), TControl.AdjustToDPI(topLeft.Y)];
+    dimensions := [TControl.AdjustToDPI(dimensions.X), TControl.AdjustToDPI(dimensions.Y)];
+  end;
+
+  Self.Create(owner, caption, hint, topLeft, dimensions);
+end;
+
+procedure TListBox.Create(owner: TControl; caption, hint: String; topleft, dimensions, offset: TPoint; adjustDPI: Boolean); overload;
+begin
+  if adjustDPI then
+  begin
+    topLeft := [TControl.AdjustToDPI(topLeft.X), TControl.AdjustToDPI(topLeft.Y)];
+    dimensions := [TControl.AdjustToDPI(dimensions.X), TControl.AdjustToDPI(dimensions.Y)];
+  end;
+
+  Self.Create(owner, caption, hint, topleft + offset, dimensions, False);
+end;
+
+
 procedure TTrackBar.Create(owner: TControl);
 begin
   Self.Init(owner);
   Self.SetParent(owner);
 end;
 
+procedure TTrackBar.Create(owner: TControl; caption, hint: String; topleft, dimensions: TPoint); overload;
+begin
+  Self.Create(owner);
+  if topleft.X > 0 then Self.SetLeft(topleft.X);
+  if topleft.Y > 0 then Self.SetTop(topleft.Y);
+  if dimensions.X > 0 then Self.SetWidth(dimensions.X);
+  if dimensions.Y > 0 then Self.SetHeight(dimensions.Y);
+  Self.SetCaption(caption);
+  Self.SetHint(hint);
+end;
+
+procedure TTrackBar.Create(owner: TControl; caption, hint: String; topleft, dimensions: TPoint; adjustDPI: Boolean); overload;
+begin
+  if adjustDPI then
+  begin
+    topLeft := [TControl.AdjustToDPI(topLeft.X), TControl.AdjustToDPI(topLeft.Y)];
+    dimensions := [TControl.AdjustToDPI(dimensions.X), TControl.AdjustToDPI(dimensions.Y)];
+  end;
+
+  Self.Create(owner, caption, hint, topLeft, dimensions);
+end;
+
+procedure TTrackBar.Create(owner: TControl; caption, hint: String; topleft, dimensions, offset: TPoint; adjustDPI: Boolean); overload;
+begin
+  if adjustDPI then
+  begin
+    topLeft := [TControl.AdjustToDPI(topLeft.X), TControl.AdjustToDPI(topLeft.Y)];
+    dimensions := [TControl.AdjustToDPI(dimensions.X), TControl.AdjustToDPI(dimensions.Y)];
+  end;
+
+  Self.Create(owner, caption, hint, topleft + offset, dimensions, False);
+end;
+
+
 procedure TSimbaImageBox.Create(owner: TControl);
 begin
   Self.Init(owner);
   Self.SetParent(owner);
+  Self.SetAlign(TAlign.alClient);
+end;
+
+procedure TSimbaImageBox.Create(owner: TControl; caption, hint: String; topleft, dimensions: TPoint); overload;
+begin
+  Self.Create(owner);
+  if topleft.X > 0 then Self.SetLeft(topleft.X);
+  if topleft.Y > 0 then Self.SetTop(topleft.Y);
+  if dimensions.X > 0 then Self.SetWidth(dimensions.X);
+  if dimensions.Y > 0 then Self.SetHeight(dimensions.Y);
+  Self.SetCaption(caption);
+  Self.SetHint(hint);
+end;
+
+procedure TSimbaImageBox.Create(owner: TControl; caption, hint: String; topleft, dimensions: TPoint; adjustDPI: Boolean); overload;
+begin
+  if adjustDPI then
+  begin
+    topLeft := [TControl.AdjustToDPI(topLeft.X), TControl.AdjustToDPI(topLeft.Y)];
+    dimensions := [TControl.AdjustToDPI(dimensions.X), TControl.AdjustToDPI(dimensions.Y)];
+  end;
+
+  Self.Create(owner, caption, hint, topLeft, dimensions);
+end;
+
+procedure TSimbaImageBox.Create(owner: TControl; caption, hint: String; topleft, dimensions, offset: TPoint; adjustDPI: Boolean); overload;
+begin
+  if adjustDPI then
+  begin
+    topLeft := [TControl.AdjustToDPI(topLeft.X), TControl.AdjustToDPI(topLeft.Y)];
+    dimensions := [TControl.AdjustToDPI(dimensions.X), TControl.AdjustToDPI(dimensions.Y)];
+  end;
+
+  Self.Create(owner, caption, hint, topleft + offset, dimensions, False);
 end;
 
 
-
 (*
-TImage.LoadFromFile
-~~~~~~~~~~~~~~~~~~~
-.. pascal:: procedure TImage.LoadFromFile(path: String);
-
+## TImage.LoadFromFile
+```pascal
+procedure TImage.LoadFromFile(path: String);
+```
 Load a image file to a TImage directly.
 *)
 procedure TImage.LoadFromFile(path: String);
@@ -393,10 +807,10 @@ begin
 end;
 
 (*
-TControl.LoadFromFile
-~~~~~~~~~~~~~~~~~~~~~
-.. pascal:: procedure TControl.LoadFromFile(path: String);
-
+## TControl.LoadFromFile
+```pascal
+procedure TControl.LoadFromFile(path: String);
+```
 Load a image file and set it as the background for a TControl.
 This can be used to set images for TPanels, TPageControls, TTabSheet, TButtons, etc.
 *)
@@ -417,10 +831,10 @@ begin
 end;
 
 (*
-TControl.SwapImage
-~~~~~~~~~~~~~~~~~~
-.. pascal:: procedure TControl.SwapImage(path: String);
-
+## TControl.SwapImage
+```pascal
+procedure TControl.SwapImage(path: String);
+```
 Load a new image file and set it as the new background for a TControl.
 This can be used to swap images for TPanels, TPageControls, TTabSheet, TButtons, etc.
 If the TControl doesn't have an image yet, this will also set it up.
@@ -455,10 +869,10 @@ end;
 
 
 (*
-TControl.GetTrueWidth
-~~~~~~~~~~~~~~~~~~~
-.. pascal:: function TControl.GetTrueWidth(): Int32;
-
+## TControl.GetTrueWidth
+```pascal
+function TControl.GetTrueWidth(): Int32;
+```
 Get the true width of the TControl caption.
 *)
 function TControl.GetTrueWidth(): Int32;
@@ -485,10 +899,10 @@ begin
 end;
 
 (*
-TControl.GetTrueHeight
-~~~~~~~~~~~~~~~~~~~
-.. pascal:: function TControl.GetTrueHeight(): Int32;
-
+## TControl.GetTrueHeight
+```pascal
+function TControl.GetTrueHeight(): Int32;
+```
 Get the true height of the TControl caption.
 *)
 function TControl.GetTrueHeight(): Int32;
@@ -515,10 +929,10 @@ begin
 end;
 
 (*
-CheckBox.SetChecked
-~~~~~~~~~~~~~~~~~~~
-.. pascal:: procedure TCheckBox.SetChecked(value: Boolean);
-
+## CheckBox.SetChecked
+```pascal
+procedure TCheckBox.SetChecked(value: Boolean);
+```
 Sets the checkbox checked or unchecked with a boolean.
 *)
 procedure TCheckBox.SetChecked(value: Boolean);
@@ -530,10 +944,10 @@ begin
 end;
 
 (*
-CheckBox.IsChecked
-~~~~~~~~~~~~~~~~~~
-.. pascal:: function TCheckBox.IsChecked(): Boolean;
-
+## CheckBox.IsChecked
+```pascal
+function TCheckBox.IsChecked(): Boolean;
+```
 Gets the checkbox state, checked or unchecked with a boolean.
 *)
 function TCheckBox.IsChecked(): Boolean;
@@ -542,10 +956,10 @@ begin
 end;
 
 (*
-CheckBox.Toggle
-~~~~~~~~~~~~~~~
-.. pascal:: procedure TCheckBox.Toggle();
-
+## CheckBox.Toggle
+```pascal
+procedure TCheckBox.Toggle();
+```
 Inverts the checkbox.
 *)
 procedure TCheckBox.Toggle();
@@ -557,21 +971,64 @@ begin
 end;
 
 
+function TStrings.Search(value: String; lo: Int32 = 0): Int32;
+begin
+  for Result := lo to Self.getCount() - 1 do
+    if value in Self.getStrings(Result) then
+      Exit;
+
+  Result := -1;
+end;
+
+function TListBox.Search(value: String): Int32;
+var
+  lo: Int32;
+  strings: TStrings;
+begin
+  if Length(value) > 1 then
+    lo := Self.getItemIndex()
+  else
+    lo := 0;
+
+  strings := Self.GetItems();
+  Result := strings.Search(value, lo);
+  if Result > -1 then
+    Self.SetItemIndex(Result);
+end;
+
+function TComboBox.Search(value: String): Int32;
+var
+  lo: Int32;
+  strings: TStrings;
+begin
+  if Length(value) > 1 then
+    lo := Self.getItemIndex()
+  else
+    lo := 0;
+
+  strings := Self.GetItems();
+  Result := strings.Search(value, lo);
+  if Result > -1 then
+    Self.SetItemIndex(Result);
+end;
+
+
+
 type
 (*
-LabeledControl
-~~~~~~~~~~~~~~
-.. pascal::
-  type TLabeledControl = record
+## LabeledControl
+```pascal
+type
+  TLabeledControl = record
     Panel: TPanel;
     Caption: TLabel;
   end;
-
+```
 TLabeledControl is the base type for custom TLabeledControls.
 It's not really meant to be used directly.
 If for some reason you need to see the control bounds, it's recommended to set the panel bevel width to 1.
 
-.. pascal:: Changing TLabeledControl subcomponents align value can mess the position of everything.
+Changing TLabeledControl subcomponents align value can mess the position of everything.
 *)
   TLabeledControl = record
     Panel: TPanel;
@@ -579,22 +1036,22 @@ If for some reason you need to see the control bounds, it's recommended to set t
   end;
 
 (*
-LabeledEdit
-~~~~~~~~~~~
-.. pascal:: TLabeledPanel = type TLabeledControl;
-
+## TLabeledPanel
+```pascal
+TLabeledPanel = type TLabeledControl;
+```
 Same exact thing as a TLabeledControl but with the purpose of being a panel for other components.
 *)
   TLabeledPanel = type TLabeledControl;
 
 (*
-LabeledEdit
-~~~~~~~~~~~
-.. pascal::
-  type TLabeledEdit = record(TLabeledControl)
+## LabeledEdit
+```pascal
+type
+  TLabeledEdit = record(TLabeledControl)
     Edit: TEdit;
   end;
-
+```
 TLabeledEdit is, as the name implies a TEdit with a TLabel on top.
 Both components are contained in the TPanel inherited from TLabeledControl.
 *)
@@ -603,29 +1060,30 @@ Both components are contained in the TPanel inherited from TLabeledControl.
   end;
 
 (*
-LabeledCheckBox
-~~~~~~~~~~~
-.. pascal::
-  type TLabeledCheckBox = record(TLabeledControl)
-    CheckBox: TEdit;
-  end;
-
+## LabeledCheckBox
+```pascal
+type TLabeledCheckBox = record(TLabeledControl)
+CheckBox: TEdit;
+end;
+```
 TLabeledCheckBox is, as the name implies a TCheckBox with a TLabel to it's right.
 Both components are contained in the TPanel inherited from TLabeledControl.
-.. note:: The standard TCheckBox already has a label by it but it's hard to customize it.
+```{note}
+The standard TCheckBox already has a label by it but it's hard to customize it.
+```
 *)
   TLabeledCheckBox = record(TLabeledControl)
     CheckBox: TCheckBox;
   end;
 
 (*
-LabeledComboBox
-~~~~~~~~~~~~~~~
-.. pascal::
-  type TLabeledComboBox = record(TLabeledControl)
+## LabeledComboBox
+```pascal
+type
+  TLabeledComboBox = record(TLabeledControl)
     ComboBox: TComboBox;
   end;
-
+```
 TLabeledComboBox is, as the name implies a TComboBox with a TLabel on top.
 Both components are contained in the TPanel inherited from TLabeledControl.
 *)
@@ -634,13 +1092,13 @@ Both components are contained in the TPanel inherited from TLabeledControl.
   end;
 
 (*
-LabeledListBox
-~~~~~~~~~~~~~~
-.. pascal::
-  type TLabeledListBox = record(TLabeledControl)
+## LabeledListBox
+```pascal
+type
+  TLabeledListBox = record(TLabeledControl)
     ListBox: TListBox;
   end;
-
+```
 TLabeledListBox is, as the name implies a TListBox with a TLabel on top.
 Both components are contained in the TPanel inherited from TLabeledControl.
 *)
@@ -649,13 +1107,13 @@ Both components are contained in the TPanel inherited from TLabeledControl.
   end;
 
 (*
-LabeledMemo
-~~~~~~~~~~~
-.. pascal::
-  type TLabeledMemo = record(TLabeledControl)
+## LabeledMemo
+```pascal
+type
+  TLabeledMemo = record(TLabeledControl)
     Memo: TMemo;
   end;
-
+```
 TLabeledMemo is, as the name implies a TMemo with a TLabel on top.
 Both components are contained in the TPanel inherited from TLabeledControl.
 *)
@@ -664,13 +1122,13 @@ Both components are contained in the TPanel inherited from TLabeledControl.
   end;
 
 (*
-LabeledTrackBar
-~~~~~~~~~~~~~~~
-.. pascal::
-  type TLabeledTrackBar = record(TLabeledControl)
+## LabeledTrackBar
+```pascal
+type
+  TLabeledTrackBar = record(TLabeledControl)
     TrackBar: TTrackBar;
   end;
-
+```
 TLabeledTrackBar is, as the name implies a TTrackBar with a TLabel on top.
 Both components are contained in the TPanel inherited from TLabeledControl.
 *)
@@ -679,14 +1137,14 @@ Both components are contained in the TPanel inherited from TLabeledControl.
   end;
 
 (*
-CheckCheckGroup
-~~~~~~~~~~~~~~~
-.. pascal::
+## CheckCheckGroup
+```pascal
+type
   TCheckCheckGroup = record(TLabeledCheckBox)
     CaptionPanel, GroupPanel: TPanel;
     Group: array of TLabeledCheckBox;
   end;
-
+```
 TCheckCheckGroup is, a custom component.
 The best way to describe it is a TLabeledCheckBox group that the caption itself is a checkbox to enable/disable the whole group.
 *)
@@ -697,10 +1155,10 @@ The best way to describe it is a TLabeledCheckBox group that the caption itself 
 
 
 (*
-LabeledControl.IsInitiated
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. pascal:: function TLabeledControl.IsInitiated(): Boolean;
-
+## LabeledControl.IsInitiated
+```pascal
+function TLabeledControl.IsInitiated(): Boolean;
+```
 Checks if the custom labeled control has already been initiated.
 *)
 function TLabeledControl.IsInitiated(): Boolean;
@@ -709,19 +1167,19 @@ begin
 end;
 
 (*
-Create
-~~~~~~
-.. pascal::
-  procedure TLabeledControl.Create(owner: TControl);
-  procedure TLabeledPanel.Create(owner: TControl); override;
-  procedure TLabeledEdit.Create(owner: TControl); override;
-  procedure TLabeledCheckBox.Create(owner: TControl); override;
-  procedure TLabeledComboBox.Create(owner: TControl); override;
-  procedure TLabeledListBox.Create(owner: TControl); override;
-  procedure TLabeledMemo.Create(owner: TControl); override;
-  procedure TLabeledTrackBar.Create(owner: TControl); override;
-
-Custom components **.Init()** and **.SetParent()** in a single method.
+## TLabeledControl.Create
+```pascal
+procedure TLabeledControl.Create(owner: TControl);
+procedure TLabeledPanel.Create(owner: TControl); override;
+procedure TLabeledEdit.Create(owner: TControl); override;
+procedure TLabeledCheckBox.Create(owner: TControl); override;
+procedure TLabeledComboBox.Create(owner: TControl); override;
+procedure TLabeledListBox.Create(owner: TControl); override;
+procedure TLabeledMemo.Create(owner: TControl); override;
+procedure TLabeledTrackBar.Create(owner: TControl); override;
+```
+Custom components `TLabeledControl.Init()` and `TLabeledControl.SetParent()` in a single method.
+Since this is used very often a wrapper was made.
 *)
 procedure TLabeledControl.Create(owner: TControl);
 begin
@@ -754,8 +1212,6 @@ begin
 
   Self.Panel.setHeight(h);
 end;
-
-
 
 procedure TLabeledCheckBox.Create(owner: TControl); override;
   type TLabeledCheckBox = TLabeledCheckBox;
@@ -927,10 +1383,10 @@ end;
 
 
 (*
-LabeledControl.SetCaption
-~~~~~~~~~~~~~~~~~~~~~~~~~
-.. pascal:: procedure TLabeledControl.SetCaption(value: String);
-
+## LabeledControl.SetCaption
+```pascal
+procedure TLabeledControl.SetCaption(value: String);
+```
 Set the labeled control caption.
 *)
 procedure TLabeledControl.SetCaption(value: String);
@@ -955,10 +1411,10 @@ end;
 
 
 (*
-LabeledControl.SetHint
-~~~~~~~~~~~~~~~~~~~~~~
-.. pascal:: procedure TLabeledControl.SetHint(value: String);
-
+## LabeledControl.SetHint
+```pascal
+procedure TLabeledControl.SetHint(value: String);
+```
 Set the labeled control hint (tooltip).
 *)
 procedure TLabeledControl.SetHint(value: String);
@@ -967,10 +1423,10 @@ begin
 end;
 
 (*
-LabeledControl.ShowHint
-~~~~~~~~~~~~~~~~~~~~~~~
-.. pascal:: procedure TLabeledControl.ShowHint();
-
+## LabeledControl.ShowHint
+```pascal
+procedure TLabeledControl.ShowHint();
+```
 Sets show hint (tooltip) to true.
 *)
 procedure TLabeledControl.ShowHint();
@@ -979,10 +1435,10 @@ begin
 end;
 
 (*
-LabeledControl.SetShowHint
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. pascal:: procedure TLabeledControl.SetShowHint(value: Boolean);
-
+## LabeledControl.SetShowHint
+```pascal
+procedure TLabeledControl.SetShowHint(value: Boolean);
+```
 Sets show hint (tooltip) to true or false.
 *)
 procedure TLabeledControl.SetShowHint(value: Boolean);
@@ -991,10 +1447,10 @@ begin
 end;
 
 (*
-LabeledControl.SetTooltip
-~~~~~~~~~~~~~~~~~~~~~~~~~
-.. pascal:: procedure TLabeledControl.SetTooltip(value: String);
-
+## LabeledControl.SetTooltip
+```pascal
+procedure TLabeledControl.SetTooltip(value: String);
+```
 Same as the previous one but makes sure that .ShowHint() is enabled if **value** was not empty.
 For more info read about TControl.SetTooltip().
 *)
@@ -1004,16 +1460,15 @@ begin
 end;
 
 (*
-LabeledControl.SetName
-~~~~~~~~~~~~~~~~~~~~~~
-.. pascal::
-  procedure TLabeledEdit.SetName(value: String);
-  procedure TLabeledCheckBox.SetName(value: String);
-  procedure TLabeledComboBox.SetName(value: String)
-  procedure TLabeledListBox.SetName(value: String);
-  procedure TLabeledMemo.SetName(value: String);
-  procedure TLabeledTrackBar.SetName(value: String);
-
+## LabeledControl.SetName
+```pascal
+procedure TLabeledEdit.SetName(value: String);
+procedure TLabeledCheckBox.SetName(value: String);
+procedure TLabeledComboBox.SetName(value: String)
+procedure TLabeledListBox.SetName(value: String);
+procedure TLabeledMemo.SetName(value: String);
+procedure TLabeledTrackBar.SetName(value: String);
+```
 Sets names to the subcomponents of the TLabeledControl.
 Caption is named with **value** + '_caption' while the other component is appended with it's name.
 *)
@@ -1133,18 +1588,18 @@ end;
 
 
 (*
-LabeledControl.Set
-~~~~~~~~~~~~~~~~~~
-.. pascal::
-  procedure TLabeledControl.SetLeft(value: Int32);
-  procedure TLabeledControl.SetTop(value: Int32);
-  procedure TLabeledControl.SetWidth(value: Int32);
-  procedure TLabeledControl.SetHeight(value: Int32);
-  procedure TLabeledControl.SetAlign(value: TAlign);
-  procedure TLabeledControl.SetColor(value: Int32);
-  procedure TLabeledControl.SetFontColor(value: Int32);
-  procedure TLabeledControl.SetVisible(value: Boolean);
-
+## LabeledControl.Set
+```pascal
+procedure TLabeledControl.SetLeft(value: Int32);
+procedure TLabeledControl.SetTop(value: Int32);
+procedure TLabeledControl.SetWidth(value: Int32);
+procedure TLabeledControl.SetHeight(value: Int32);
+procedure TLabeledControl.SetAlign(value: TAlign);
+procedure TLabeledControl.SetColor(value: Int32);
+procedure TLabeledControl.SetFontColor(color: TColor);
+procedure TLabeledControl.SetFontSize(size: Int32);
+procedure TLabeledControl.SetVisible(value: Boolean);
+```
 TLabeledControl Set methods.
 The methods are self explanatory.
 The only thing that should be kept in mind is that they only interactwith the TLabeledControl.Panel.
@@ -1184,12 +1639,14 @@ begin
   Self.Panel.setColor(value);
 end;
 
-procedure TLabeledControl.SetFontColor(value: Int32);
-var
-  font: TFont;
+procedure TLabeledControl.SetFontColor(color: TColor);
 begin
-  font := Self.Caption.getFont();
-  font.setColor(value);
+  Self.Caption.SetFontColor(color);
+end;
+
+procedure TLabeledControl.SetFontSize(size: Int32);
+begin
+  Self.Caption.SetFontSize(size);
 end;
 
 procedure TLabeledControl.SetVisible(value: Boolean);
@@ -1198,10 +1655,10 @@ begin
 end;
 
 (*
-LabeledControl.BringToFront
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. pascal:: procedure TLabeledControl.BringToFront();
-
+## LabeledControl.BringToFront
+```pascal
+procedure TLabeledControl.BringToFront();
+```
 Brings the control to front.
 *)
 procedure TLabeledControl.BringToFront();
@@ -1211,16 +1668,15 @@ end;
 
 
 (*
-LabeledControl.Get
-~~~~~~~~~~~~~~~~~~
-.. pascal::
-  function TLabeledControl.GetLeft(): Int32;
-  function TLabeledControl.GetTop(): Int32;
-  function TLabeledControl.GetRight(): Int32;
-  function TLabeledControl.GetBottom(): Int32;
-  function TLabeledControl.GetHeight(): Int32;
-  function TLabeledControl.GetVisible(): Boolean;
-
+## LabeledControl.Get
+```pascal
+function TLabeledControl.GetLeft(): Int32;
+function TLabeledControl.GetTop(): Int32;
+function TLabeledControl.GetRight(): Int32;
+function TLabeledControl.GetBottom(): Int32;
+function TLabeledControl.GetHeight(): Int32;
+function TLabeledControl.GetVisible(): Boolean;
+```
 TLabeledControl Get methods.
 The methods are self explanatory.
 *)
@@ -1261,13 +1717,12 @@ end;
 
 
 (*
-LabeledControl.SetText
-~~~~~~~~~~~~~~~~~~~~~~
-.. pascal::
-  procedure TLabeledEdit.SetText(value: String);
-  procedure TLabeledComboBox.SetText(value: String);
-  procedure TLabeledMemo.SetText(value: String);
-
+## LabeledControl.SetText
+```pascal
+procedure TLabeledEdit.SetText(value: String);
+procedure TLabeledComboBox.SetText(value: String);
+procedure TLabeledMemo.SetText(value: String);
+```
 Sets the visible text in the TLabeledControl to **value**.
 *)
 procedure TLabeledEdit.SetText(value: String);
@@ -1287,15 +1742,19 @@ end;
 
 
 (*
-LabeledControl.GetText
-~~~~~~~~~~~~~~~~~~~~~~
-.. pascal::
-  function TLabeledEdit.GetText(): String;
-  function TLabeledComboBox.GetText(): String;
-  function TLabeledListBox.GetText(): String;
-  function TLabeledMemo.GetText(): String;
-
+## LabeledControl.GetText
+```pascal
+function TLabeledEdit.GetText(): String;
+function TLabeledComboBox.GetText(): String;
+function TLabeledListBox.GetText(): String;
+function TLabeledMemo.GetText(): String;
+```
 Gets the visible or selected text in the TLabeledControl.
+
+Example:
+```pascal
+WriteLn myEdit.GetText();
+```
 *)
 function TLabeledEdit.GetText(): String;
 begin
@@ -1318,10 +1777,10 @@ begin
 end;
 
 (*
-LabeledControl.GetText
-~~~~~~~~~~~~~~~~~~~~~~
-.. pascal:: function TLabeledControl.GetName(): String;
-
+## LabeledControl.GetName
+```pascal
+function TLabeledControl.GetName(): String;
+```
 Gets the TLabeledControl name.
 *)
 function TLabeledControl.GetName(): String;
@@ -1333,14 +1792,13 @@ end;
 
 
 (*
-LabeledControl.Clear
-~~~~~~~~~~~~~~~~~~~~
-.. pascal::
-  procedure TLabeledEdit.Clear();
-  procedure TLabeledComboBox.Clear();
-  procedure TLabeledListBox.Clear();
-  procedure TLabeledMemo.Clear();
-
+## LabeledControl.Clear
+```pascal
+procedure TLabeledEdit.Clear();
+procedure TLabeledComboBox.Clear();
+procedure TLabeledListBox.Clear();
+procedure TLabeledMemo.Clear();
+```
 Clears the TLabeledControl.
 *)
 procedure TLabeledEdit.Clear();
@@ -1365,10 +1823,10 @@ end;
 
 
 (*
-LabeledCheckBox.SetChecked
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. pascal:: procedure TLabeledCheckBox.SetChecked(value: Boolean);
-
+## LabeledCheckBox.SetChecked
+```pascal
+procedure TLabeledCheckBox.SetChecked(value: Boolean);
+```
 Sets the checkbox or not depending on **value**.
 *)
 procedure TLabeledCheckBox.SetChecked(value: Boolean);
@@ -1377,10 +1835,10 @@ begin
 end;
 
 (*
-LabeledCheckBox.IsChecked
-~~~~~~~~~~~~~~~~~~~~~~~~~
-.. pascal:: function TLabeledCheckBox.IsChecked(): Boolean;
-
+## LabeledCheckBox.IsChecked
+```pascal
+function TLabeledCheckBox.IsChecked(): Boolean;
+```
 Gets the checkbox state true or false.
 *)
 function TLabeledCheckBox.IsChecked(): Boolean;
@@ -1389,10 +1847,10 @@ begin
 end;
 
 (*
-LabeledCheckBox.GetState
-~~~~~~~~~~~~~~~~~~~~~~~~
-.. pascal:: function TLabeledCheckBox.GetState(): TCheckBoxState;
-
+## LabeledCheckBox.GetState
+```pascal
+function TLabeledCheckBox.GetState(): TCheckBoxState;
+```
 Gets the checkbox state.
 *)
 function TLabeledCheckBox.GetState(): TCheckBoxState;
@@ -1401,15 +1859,14 @@ begin
 end;
 
 (*
-LabeledControl.SetEnabled
-~~~~~~~~~~~~~~~~~~~~~~~~~
-.. pascal::
-  procedure TLabeledEdit.SetEnabled(value: Boolean);
-  procedure TLabeledCheckBox.SetChecked(value: Boolean);
-  procedure TLabeledComboBox.SetEnabled(value: Boolean);
-  procedure TLabeledListBox.SetEnabled(value: Boolean);
-  procedure TLabeledMemo.SetEnabled(value: Boolean);
-
+## LabeledControl.SetEnabled
+```pascal
+procedure TLabeledEdit.SetEnabled(value: Boolean);
+procedure TLabeledCheckBox.SetChecked(value: Boolean);
+procedure TLabeledComboBox.SetEnabled(value: Boolean);
+procedure TLabeledListBox.SetEnabled(value: Boolean);
+procedure TLabeledMemo.SetEnabled(value: Boolean);
+```
 Sets the checkbox or not depending on **value**.
 *)
 procedure TLabeledEdit.SetEnabled(value: Boolean);
@@ -1441,12 +1898,11 @@ end;
 
 
 (*
-LabeledControl.SetPasswordChar
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. pascal::
-  procedure TLabeledEdit.SetPasswordChar(value: Char = '*');
-  procedure TLabeledMemo.SetPasswordChar(value: Char = '*');
-
+## LabeledControl.SetPasswordChar
+```pascal
+procedure TLabeledEdit.SetPasswordChar(value: Char = '*');
+procedure TLabeledMemo.SetPasswordChar(value: Char = '*');
+```
 Sets the TLabeledControl to hide the displayed text with **value** characters.
 Mostly used to hide passwords.
 *)
@@ -1462,12 +1918,11 @@ end;
 
 
 (*
-LabeledControl.SetMaxLength
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. pascal::
-  procedure TLabeledEdit.SetMaxLength(value: Int32);
-  procedure TLabeledMemo.SetMaxLength(value: Int32);
-
+## LabeledControl.SetMaxLength
+```pascal
+procedure TLabeledEdit.SetMaxLength(value: Int32);
+procedure TLabeledMemo.SetMaxLength(value: Int32);
+```
 Sets the maximum length of characters accepted by the TLabeledControl.
 *)
 procedure TLabeledEdit.SetMaxLength(value: Int32);
@@ -1481,12 +1936,11 @@ begin
 end;
 
 (*
-LabeledControl.GetMaxLength
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. pascal::
-  function TLabeledEdit.GetMaxLength(): Int32;
-  function TLabeledMemo.GetMaxLength(): Int32;
-
+## LabeledControl.GetMaxLength
+```pascal
+function TLabeledEdit.GetMaxLength(): Int32;
+function TLabeledMemo.GetMaxLength(): Int32;
+```
 Returns the maximum length of characters accepted by the TLabeledControl.
 *)
 function TLabeledEdit.GetMaxLength(): Int32;
@@ -1501,12 +1955,11 @@ end;
 
 
 (*
-LabeledControl.SetStyle
-~~~~~~~~~~~~~~~~~~~~~~~
-.. pascal::
-  procedure TLabeledComboBox.SetStyle(value: TComboBoxStyle);
-  procedure TLabeledListBox.SetStyle(value: TListBoxStyle);
-
+## LabeledControl.SetStyle
+```pascal
+procedure TLabeledComboBox.SetStyle(value: TComboBoxStyle);
+procedure TLabeledListBox.SetStyle(value: TListBoxStyle);
+```
 Sets the TLabeledControl style.
 *)
 procedure TLabeledComboBox.SetStyle(value: TComboBoxStyle);
@@ -1522,12 +1975,11 @@ end;
 
 
 (*
-LabeledControl.AddItem
-~~~~~~~~~~~~~~~~~~~~~~
-.. pascal::
-  procedure TLabeledCombobox.AddItem(value: String);
-  procedure TLabeledListBox.AddItem(value: String);
-
+## LabeledControl.AddItem
+```pascal
+procedure TLabeledCombobox.AddItem(value: String);
+procedure TLabeledListBox.AddItem(value: String);
+```
 Adds an item to the TLabeledControl.
 *)
 procedure TLabeledCombobox.AddItem(value: String);
@@ -1613,13 +2065,12 @@ end;
 
 
 (*
-LabeledControl.AddItemArray
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. pascal::
-  procedure TLabeledCombobox.AddItemArray(valueArray: TStringArray);
-  procedure TLabeledListBox.AddItemArray(valueArray: TStringArray);
-  procedure TCheckCheckGroup.AddItemArray(valueArray: TStringArray);
-
+## LabeledControl.AddItemArray
+```pascal
+procedure TLabeledCombobox.AddItemArray(valueArray: TStringArray);
+procedure TLabeledListBox.AddItemArray(valueArray: TStringArray);
+procedure TCheckCheckGroup.AddItemArray(valueArray: TStringArray);
+```
 Adds an array of items to the TLabeledControl.
 *)
 procedure TLabeledCombobox.AddItemArray(valueArray: TStringArray);
@@ -1659,12 +2110,11 @@ end;
 
 
 (*
-LabeledControl.SetItemIndex
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. pascal::
-  procedure TLabeledCombobox.SetItemIndex(value: Int32);
-  procedure TLabeledListBox.SetItemIndex(value: Int32);
-
+## LabeledControl.SetItemIndex
+```pascal
+procedure TLabeledCombobox.SetItemIndex(value: Int32);
+procedure TLabeledListBox.SetItemIndex(value: Int32);
+```
 Sets the selected index for the TLabeledControl.
 *)
 procedure TLabeledCombobox.SetItemIndex(value: Int32);
@@ -1679,12 +2129,11 @@ end;
 
 
 (*
-LabeledControl.GetItemIndex
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. pascal::
-  function TLabeledCombobox.GetItemIndex(): Int32;
-  function TLabeledListBox.GetItemIndex(): Int32;
-
+## LabeledControl.GetItemIndex
+```pascal
+function TLabeledCombobox.GetItemIndex(): Int32;
+function TLabeledListBox.GetItemIndex(): Int32;
+```
 Gets the selected index of the TLabeledControl.
 *)
 function TLabeledCombobox.GetItemIndex(): Int32;
@@ -1698,11 +2147,359 @@ begin
 end;
 
 
-//TODO: DELETE!!
-procedure TLabeledPanel.Setup(owner: TComponent; caption: String);
+
+procedure TLabeledPanel.Create(owner: TControl; topleft, dimensions: TPoint); overload;
 begin
   Self.Create(owner);
-
-  Self.SetCaption(caption);
+  if topleft.X > 0 then Self.SetLeft(topleft.X);
+  if topleft.Y > 0 then Self.SetTop(topleft.Y);
+  if dimensions.X > 0 then Self.SetWidth(dimensions.X);
+  if dimensions.Y > 0 then Self.SetHeight(dimensions.Y);
 end;
 
+procedure TLabeledPanel.Create(owner: TControl; topleft, dimensions: TPoint; adjustDPI: Boolean); overload;
+begin
+  if adjustDPI then
+  begin
+    topleft := [TControl.AdjustToDPI(topleft.X), TControl.AdjustToDPI(topleft.Y)];
+    dimensions := [TControl.AdjustToDPI(dimensions.X), TControl.AdjustToDPI(dimensions.Y)];
+  end;
+
+  Self.Create(owner, topleft, dimensions);
+end;
+
+procedure TLabeledPanel.Create(owner: TControl; topleft, dimensions, offset: TPoint; adjustDPI: Boolean); overload;
+begin
+  if adjustDPI then
+  begin
+    topleft := [TControl.AdjustToDPI(topleft.X), TControl.AdjustToDPI(topleft.Y)];
+    dimensions := [TControl.AdjustToDPI(dimensions.X), TControl.AdjustToDPI(dimensions.Y)];
+  end;
+
+  Self.Create(owner, topleft + offset, dimensions, False);
+end;
+
+
+procedure TLabeledEdit.Create(owner: TControl; caption, hint: String; topleft, dimensions: TPoint); overload;
+begin
+  Self.Create(owner);
+  if topleft.X > 0 then Self.SetLeft(topleft.X);
+  if topleft.Y > 0 then Self.SetTop(topleft.Y);
+  if dimensions.X > 0 then Self.SetWidth(dimensions.X);
+  if dimensions.Y > 0 then Self.SetHeight(dimensions.Y);
+  Self.SetCaption(caption);
+  Self.SetHint(hint);
+end;
+
+procedure TLabeledEdit.Create(owner: TControl; caption, hint: String; topleft, dimensions: TPoint; adjustDPI: Boolean); overload;
+begin
+  if adjustDPI then
+  begin
+    topleft := [TControl.AdjustToDPI(topleft.X), TControl.AdjustToDPI(topleft.Y)];
+    dimensions := [TControl.AdjustToDPI(dimensions.X), TControl.AdjustToDPI(dimensions.Y)];
+  end;
+
+  Self.Create(owner, caption, hint, topleft, dimensions);
+end;
+
+procedure TLabeledEdit.Create(owner: TControl; caption, hint: String; topleft, dimensions, offset: TPoint; adjustDPI: Boolean); overload;
+begin
+  if adjustDPI then
+  begin
+    topleft := [TControl.AdjustToDPI(topleft.X), TControl.AdjustToDPI(topleft.Y)];
+    dimensions := [TControl.AdjustToDPI(dimensions.X), TControl.AdjustToDPI(dimensions.Y)];
+  end;
+
+  Self.Create(owner, caption, hint, topleft + offset, dimensions, False);
+end;
+
+
+
+procedure TLabeledComboBox.Create(owner: TControl; caption, hint: String; topleft, dimensions: TPoint); overload;
+begin
+  Self.Create(owner);
+  if topleft.X > 0 then Self.SetLeft(topleft.X);
+  if topleft.Y > 0 then Self.SetTop(topleft.Y);
+  if dimensions.X > 0 then Self.SetWidth(dimensions.X);
+  if dimensions.Y > 0 then Self.SetHeight(dimensions.Y);
+  Self.SetCaption(caption);
+  Self.SetHint(hint);
+end;
+
+procedure TLabeledComboBox.Create(owner: TControl; caption, hint: String; topleft, dimensions: TPoint; adjustDPI: Boolean); overload;
+begin
+  if adjustDPI then
+  begin
+    topleft := [TControl.AdjustToDPI(topleft.X), TControl.AdjustToDPI(topleft.Y)];
+    dimensions := [TControl.AdjustToDPI(dimensions.X), TControl.AdjustToDPI(dimensions.Y)];
+  end;
+
+  Self.Create(owner, caption, hint, topleft, dimensions);
+end;
+
+procedure TLabeledComboBox.Create(owner: TControl; caption, hint: String; topleft, dimensions, offset: TPoint; adjustDPI: Boolean); overload;
+begin
+  if adjustDPI then
+  begin
+    topleft := [TControl.AdjustToDPI(topleft.X), TControl.AdjustToDPI(topleft.Y)];
+    dimensions := [TControl.AdjustToDPI(dimensions.X), TControl.AdjustToDPI(dimensions.Y)];
+  end;
+
+  Self.Create(owner, caption, hint, topleft + offset, dimensions, False);
+end;
+
+
+
+procedure TLabeledCheckBox.Create(owner: TControl; caption, hint: String; topleft, dimensions: TPoint); overload;
+begin
+  Self.Create(owner);
+  if topleft.X > 0 then Self.SetLeft(topleft.X);
+  if topleft.Y > 0 then Self.SetTop(topleft.Y);
+  if dimensions.X > 0 then Self.SetWidth(dimensions.X);
+  if dimensions.Y > 0 then Self.SetHeight(dimensions.Y);
+  Self.SetCaption(caption);
+  Self.SetHint(hint);
+end;
+
+procedure TLabeledCheckBox.Create(owner: TControl; caption, hint: String; topleft, dimensions: TPoint; adjustDPI: Boolean); overload;
+begin
+  if adjustDPI then
+  begin
+    topleft := [TControl.AdjustToDPI(topleft.X), TControl.AdjustToDPI(topleft.Y)];
+    dimensions := [TControl.AdjustToDPI(dimensions.X), TControl.AdjustToDPI(dimensions.Y)];
+  end;
+
+  Self.Create(owner, caption, hint, topleft, dimensions);
+end;
+
+procedure TLabeledCheckBox.Create(owner: TControl; caption, hint: String; topleft, dimensions, offset: TPoint; adjustDPI: Boolean); overload;
+begin
+  if adjustDPI then
+  begin
+    topleft := [TControl.AdjustToDPI(topleft.X), TControl.AdjustToDPI(topleft.Y)];
+    dimensions := [TControl.AdjustToDPI(dimensions.X), TControl.AdjustToDPI(dimensions.Y)];
+  end;
+
+  Self.Create(owner, caption, hint, topleft + offset, dimensions, False);
+end;
+
+
+procedure TLabeledListBox.Create(owner: TControl; caption, hint: String; topleft, dimensions: TPoint); overload;
+begin
+  Self.Create(owner);
+  if topleft.X > 0 then Self.SetLeft(topleft.X);
+  if topleft.Y > 0 then Self.SetTop(topleft.Y);
+  if dimensions.X > 0 then Self.SetWidth(dimensions.X);
+  if dimensions.Y > 0 then Self.SetHeight(dimensions.Y);
+  Self.SetCaption(caption);
+  Self.SetHint(hint);
+end;
+
+procedure TLabeledListBox.Create(owner: TControl; caption, hint: String; topleft, dimensions: TPoint; adjustDPI: Boolean); overload;
+begin
+  if adjustDPI then
+  begin
+    topleft := [TControl.AdjustToDPI(topleft.X), TControl.AdjustToDPI(topleft.Y)];
+    dimensions := [TControl.AdjustToDPI(dimensions.X), TControl.AdjustToDPI(dimensions.Y)];
+  end;
+
+  Self.Create(owner, caption, hint, topleft, dimensions);
+end;
+
+procedure TLabeledListBox.Create(owner: TControl; caption, hint: String; topleft, dimensions, offset: TPoint; adjustDPI: Boolean); overload;
+begin
+  if adjustDPI then
+  begin
+    topleft := [TControl.AdjustToDPI(topleft.X), TControl.AdjustToDPI(topleft.Y)];
+    dimensions := [TControl.AdjustToDPI(dimensions.X), TControl.AdjustToDPI(dimensions.Y)];
+  end;
+
+  Self.Create(owner, caption, hint, topleft + offset, dimensions, False);
+end;
+
+
+procedure TLabeledMemo.Create(owner: TControl; caption, hint: String; topleft, dimensions: TPoint); overload;
+begin
+  Self.Create(owner);
+  if topleft.X > 0 then Self.SetLeft(topleft.X);
+  if topleft.Y > 0 then Self.SetTop(topleft.Y);
+  if dimensions.X > 0 then Self.SetWidth(dimensions.X);
+  if dimensions.Y > 0 then Self.SetHeight(dimensions.Y);
+  Self.SetCaption(caption);
+  Self.SetHint(hint);
+end;
+
+procedure TLabeledMemo.Create(owner: TControl; caption, hint: String; topleft, dimensions: TPoint; adjustDPI: Boolean); overload;
+begin
+  if adjustDPI then
+  begin
+    topleft := [TControl.AdjustToDPI(topleft.X), TControl.AdjustToDPI(topleft.Y)];
+    dimensions := [TControl.AdjustToDPI(dimensions.X), TControl.AdjustToDPI(dimensions.Y)];
+  end;
+
+  Self.Create(owner, caption, hint, topleft, dimensions);
+end;
+
+procedure TLabeledMemo.Create(owner: TControl; caption, hint: String; topleft, dimensions, offset: TPoint; adjustDPI: Boolean); overload;
+begin
+  if adjustDPI then
+  begin
+    topleft := [TControl.AdjustToDPI(topleft.X), TControl.AdjustToDPI(topleft.Y)];
+    dimensions := [TControl.AdjustToDPI(dimensions.X), TControl.AdjustToDPI(dimensions.Y)];
+  end;
+
+  Self.Create(owner, caption, hint, topleft + offset, dimensions, False);
+end;
+
+
+procedure TLabeledTrackBar.Create(owner: TControl; caption, hint: String; topleft, dimensions: TPoint); overload;
+begin
+  Self.Create(owner);
+  if topleft.X > 0 then Self.SetLeft(topleft.X);
+  if topleft.Y > 0 then Self.SetTop(topleft.Y);
+  if dimensions.X > 0 then Self.SetWidth(dimensions.X);
+  if dimensions.Y > 0 then Self.SetHeight(dimensions.Y);
+  Self.SetCaption(caption);
+  Self.SetHint(hint);
+end;
+
+procedure TLabeledTrackBar.Create(owner: TControl; caption, hint: String; topleft, dimensions: TPoint; adjustDPI: Boolean); overload;
+begin
+  if adjustDPI then
+  begin
+    topleft := [TControl.AdjustToDPI(topleft.X), TControl.AdjustToDPI(topleft.Y)];
+    dimensions := [TControl.AdjustToDPI(dimensions.X), TControl.AdjustToDPI(dimensions.Y)];
+  end;
+
+  Self.Create(owner, caption, hint, topleft, dimensions);
+end;
+
+procedure TLabeledTrackBar.Create(owner: TControl; caption, hint: String; topleft, dimensions, offset: TPoint; adjustDPI: Boolean); overload;
+begin
+  if adjustDPI then
+  begin
+    topleft := [TControl.AdjustToDPI(topleft.X), TControl.AdjustToDPI(topleft.Y)];
+    dimensions := [TControl.AdjustToDPI(dimensions.X), TControl.AdjustToDPI(dimensions.Y)];
+  end;
+
+  Self.Create(owner, caption, hint, topleft + offset, dimensions, False);
+end;
+
+
+procedure TCheckCheckGroup.Create(owner: TControl; caption, hint: String; topleft, dimensions: TPoint); overload;
+begin
+  Self.Create(owner);
+  if topleft.X > 0 then Self.SetLeft(topleft.X);
+  if topleft.Y > 0 then Self.SetTop(topleft.Y);
+  if dimensions.X > 0 then Self.SetWidth(dimensions.X);
+  if dimensions.Y > 0 then Self.SetHeight(dimensions.Y);
+  Self.SetCaption(caption);
+  Self.SetHint(hint);
+end;
+
+procedure TCheckCheckGroup.Create(owner: TControl; caption, hint: String; topleft, dimensions: TPoint; adjustDPI: Boolean); overload;
+begin
+  if adjustDPI then
+  begin
+    topleft := [TControl.AdjustToDPI(topleft.X), TControl.AdjustToDPI(topleft.Y)];
+    dimensions := [TControl.AdjustToDPI(dimensions.X), TControl.AdjustToDPI(dimensions.Y)];
+  end;
+
+  Self.Create(owner, caption, hint, topleft, dimensions);
+end;
+
+procedure TCheckCheckGroup.Create(owner: TControl; caption, hint: String; topleft, dimensions, offset: TPoint; adjustDPI: Boolean); overload;
+begin
+  if adjustDPI then
+  begin
+    topleft := [TControl.AdjustToDPI(topleft.X), TControl.AdjustToDPI(topleft.Y)];
+    dimensions := [TControl.AdjustToDPI(dimensions.X), TControl.AdjustToDPI(dimensions.Y)];
+  end;
+
+  Self.Create(owner, caption, hint, topleft + offset, dimensions, False);
+end;
+
+
+{$IFDEF WINDOWS}
+function ShowWindow(hwnd: TOSWindow; nCmdShow: UInt32): LongBool;
+external 'ShowWindow@user32.dll ' + WINAPI_CC;
+
+function SetWindowAttribute(hwnd: TOSWindow; dwAttribute: DWORD; pvAttribute: Pointer; cbAttribute: DWORD): UInt32;
+external 'DwmSetWindowAttribute@dwmapi.dll ' + WINAPI_CC;
+
+function SetWindowDarkTitleBar(hwnd: TOSWindow): UInt32;
+const
+  DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
+  DARK: LongBool = True;
+begin
+  Result := SetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, @DARK, SizeOf(DARK));
+end;
+
+
+function SetWindowTheme(hwnd: TOSWindow; pszSubAppName: PWideChar; pszSubIdList: PWideChar): UInt32;
+external 'SetWindowTheme@uxtheme.dll ' + WINAPI_CC;
+
+function SetWindowTheme(hwnd: TOSWindow; pszSubAppName: WideString; pszSubIdList: PWideChar = nil): UInt32; overload;
+begin
+  Result := SetWindowTheme(hwnd, PWideChar(pszSubAppName), pszSubIdList);
+end;
+
+function GetProcAddr(handle: PtrUInt; name: PChar): Pointer;
+external 'GetProcAddress@kernel32.dll '+ WINAPI_CC;
+{$ELSE}
+function ShowWindow({$H-}hwnd: TOSWindow; nCmdShow: UInt32){$H+}: LongBool;
+begin
+  WriteLn('ShowWindow() is not implemented for this operating system!');
+  Result := False;
+end;
+
+function SetWindowAttribute({$H-}hwnd: TOSWindow; dwAttribute: DWORD; pvAttribute: Pointer; cbAttribute: DWORD){$H+}: UInt32;
+begin
+  WriteLn('SetWindowAttribute() is not implemented for this operating system!');
+  Result := 0;
+end;
+
+function SetWindowAttribute({$H-}hwnd: TOSWindow; dwAttribute: DWORD; pvAttribute: LongBool){$H+}: UInt32; overload;
+begin
+  WriteLn('SetWindowAttribute() is not implemented for this operating system!');
+  Result := 0;
+end;
+
+function SetWindowDarkTitleBar({$H-}hwnd: TOSWindow){$H+}: UInt32;
+begin
+  WriteLn('SetWindowDarkTitleBar() is not implemented for this operating system!');
+  Result := 0;
+end;
+
+
+function SetWindowTheme({$H-}hwnd: TOSWindow; pszSubAppName: PWideChar; pszSubIdList: PWideChar){$H+}: UInt32;
+begin
+  WriteLn('SetWindowTheme() is not implemented for this operating system!');
+  Result := 0;
+end;
+
+function SetWindowTheme({$H-}hwnd: TOSWindow; pszSubAppName: WideString; pszSubIdList: PWideChar = nil){$H+}: UInt32; overload;
+begin
+  WriteLn('SetWindowTheme() is not implemented for this operating system!');
+  Result := 0;
+end;
+
+function GetProcAddr({$H-}handle: PtrUInt; name: PChar){$H+}: Pointer;
+begin
+  WriteLn('GetProcAddr() is not implemented for this operating system!');
+  Result := nil;
+end;
+{$ENDIF}
+
+type
+  TPreferredAppMode = (Default, AllowDark, ForceDark, ForceLight, Max);
+
+{$H-}
+var
+  ShouldAppUseDarkMode: function(): LongBool;
+  AllowDarkModeForWindow: function(hWnd: TOSWindow; allow: LongBool): LongBool;
+  AllowDarkModeForApp: function(allow: LongBool): LongBool;
+  SetPreferredAppMode: function(appMode: TPreferredAppMode): TPreferredAppMode;
+  FlushMenuThemes: procedure();
+  RefreshImmersiveColorPolicyState: procedure();
+{$H+}

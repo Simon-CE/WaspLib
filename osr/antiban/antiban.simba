@@ -3,8 +3,7 @@
   {$I WaspLib/osr.simba}
 {$ENDIF}
 
-{$H-}
-procedure OnStartAntibanTask(Task: PAntibanTask);
+procedure TAntiban.OnStartAntibanTask({$H-}task: PAntibanTask);{$H+}
 var
   str: String;
 begin
@@ -13,51 +12,66 @@ begin
 
   str := ' Action        : Antiban';
   ProgressReport.ProgressArray[0] := str;
-  str := ' Runtime       : ' + SRL.MsToTime(ProgressReport.PTimeRunning^.ElapsedTime, Time_Short).Trim();
+  str := ' Runtime       : ' + SRL.MsToTime(ProgressReport.PTimeRunning^.ElapsedTime, Time_Short).Strip();
   ProgressReport.ProgressArray[1] := str;
 
   {$IFNDEF SRL_DISABLE_REMOTEINPUT}
-  if WLSettings.RemoteInput.Enabled and WLSettings.RemoteInput.HUDReport and not WLSettings.RemoteInput.HUDDebug then
-    ProgressReport.Update();
+  if not WLSettings.GetObject('remote_input').getBoolean('enabled') then
+    Exit;
+  if not WLSettings.GetObject('remote_input').getBoolean('hud_report') then
+    Exit;
+  if WLSettings.GetObject('remote_input').getBoolean('hud_debug') then
+    Exit;
+  ProgressReport.Update();
   {$ENDIF}
 end;
 
-procedure OnBreakingTask(Task: PBreakTask; var countdown: TCountdown);
+procedure TAntiban.OnBreakingTask({$H-}task: PBreakTask;{$H+} var countdown: TCountdown);
 var
   str: String;
 begin
   if Length(ProgressReport.ProgressArray) < 1 then
     Exit;
 
-  str := ' Breaking      : ' + SRL.MsToTime(countdown.TimeRemaining(), Time_Short).Trim();
+  str := ' Breaking      : ' + SRL.MsToTime(countdown.TimeRemaining(), Time_Short).Strip();
   ProgressReport.ProgressArray[0] := str;
-  str := ' Runtime       : ' + SRL.MsToTime(ProgressReport.PTimeRunning^.ElapsedTime, Time_Short).Trim();
+  str := ' Runtime       : ' + SRL.MsToTime(ProgressReport.PTimeRunning^.ElapsedTime, Time_Short).Strip();
   ProgressReport.ProgressArray[1] := str;
 
   {$IFNDEF SRL_DISABLE_REMOTEINPUT}
-  if WLSettings.RemoteInput.Enabled and WLSettings.RemoteInput.HUDReport and not WLSettings.RemoteInput.HUDDebug then
-    ProgressReport.Update();
+  if not WLSettings.GetObject('remote_input').getBoolean('enabled') then
+    Exit;
+  if not WLSettings.GetObject('remote_input').getBoolean('hud_report') then
+    Exit;
+  if WLSettings.GetObject('remote_input').getBoolean('hud_debug') then
+    Exit;
+  ProgressReport.Update();
   {$ENDIF}
 end;
 
-procedure OnSleepingTask(Task: PSleepTask; var Countdown: TCountdown);
+procedure TAntiban.OnSleepingTask({$H-}task: PSleepTask;{$H+} var countdown: TCountdown);
 var
   str: String;
 begin
   if Length(ProgressReport.ProgressArray) < 1 then
     Exit;
 
-  str := ' Sleeping      : ' + SRL.MsToTime(countdown.TimeRemaining(), Time_Short).Trim();
+  str := ' Sleeping      : ' + SRL.MsToTime(countdown.TimeRemaining(), Time_Short).Strip();
   ProgressReport.ProgressArray[0] := str;
-  str := ' Runtime       : ' + SRL.MsToTime(ProgressReport.PTimeRunning^.ElapsedTime, Time_Short).Trim();
+  str := ' Runtime       : ' + SRL.MsToTime(ProgressReport.PTimeRunning^.ElapsedTime, Time_Short).Strip();
   ProgressReport.ProgressArray[1] := str;
 
   {$IFNDEF SRL_DISABLE_REMOTEINPUT}
-  if WLSettings.RemoteInput.Enabled and WLSettings.RemoteInput.HUDReport and not WLSettings.RemoteInput.HUDDebug then
-    ProgressReport.Update();
+  if not WLSettings.GetObject('remote_input').getBoolean('enabled') then
+    Exit;
+  if not WLSettings.GetObject('remote_input').getBoolean('hud_report') then
+    Exit;
+  if WLSettings.GetObject('remote_input').getBoolean('hud_debug') then
+    Exit;
+
+  ProgressReport.Update();
   {$ENDIF}
 end;
-{$H+}
 
 function TAntiban.TimeRunningAtClock(timeOfDay: String; randomness: Double = 0.10): Int64; override;
 begin
@@ -73,7 +87,7 @@ begin
   if Self.MaxZoom = 0 then
     Self.MaxZoom := 100;
 
-  if MainScreen.HasInterface() then
+  if RSInterface.IsOpen() then
     Exit;
 
   zoom := EnsureRange(MM2MS.GetZoomLevel(), 0, 100);
@@ -94,7 +108,7 @@ end;
 procedure TAntiban.SmallCameraRotation();
 begin
   Self.DebugLn('Small camera rotation');
-  Minimap.SetCompassAngle(Minimap.GetCompassAngle+(Random(-15,15)));
+  Minimap.SetCompassAngle(Minimap.GetCompassAngle() + Random(-15,15));
 end;
 
 
@@ -112,32 +126,32 @@ end;
 // Mouse antibans
 procedure TAntiban.SmallRandomMouse(); override;
 var
-  B: TBox;
-  P: TPoint;
+  b: TBox;
+  p: TPoint;
   t: TCountDown;
 begin
   Self.DebugLn('Random Mouse (Small)');
 
-  B := Box(Mouse.Position(), 350, 350);
+  b := Box(Mouse.Position(), 350, 350);
   t.Init(30000);
   repeat
-    P := SRL.RandomPoint(B);
+    p := SRL.RandomPoint(b);
     if t.IsFinished() then
     begin
-      WriteLn('Box: ', B);
-      WriteLn('Point: ', P);
+      WriteLn('Box: ', b);
+      WriteLn('Point: ', p);
       Self.Fatal('Timed out!');
     end;
-  until P.DistanceTo(B.Middle) < 50; // Make sure we move at least 50 distance
+  until p.DistanceTo(b.Center()) < 50; // Make sure we move at least 50 distance
 
-  ASyncMouse.Move(P);
+  ASyncMouse.Move(p);
 end;
 
 procedure TAntiban.RandomRightClick(); override;
 begin
   Self.DebugLn('Random Right Click');
 
-  Mouse.Move(RootInterface.Bounds(), True, MOUSE_DISTRIBUTION_RANDOM);
+  Mouse.Move(RootInterface.Bounds, True, EMouseDistribution.MOUSE_DISTRIBUTION_RANDOM);
 
   if ChooseOption.Open() then
   begin
@@ -146,7 +160,7 @@ begin
 
     if not Self.BioDice(60) or not ChooseOption.Select('Examine') then
     begin
-      BioWait(500, 6000, wdLeft);
+      Self.BioWait(500, 6000, wdLeft);
       ChooseOption.Close();
     end;
   end;
@@ -166,23 +180,21 @@ procedure TAntiban.RandomTab(); override;
 begin
   Self.DebugLn('Random GameTab');
 
-  if Random < 0.80 then
+  if Random() < 0.80 then
   begin
     if Self.BioDice(50) then
     begin
-      GameTabs.Open(ERSGameTab(RandomMean(Ord(ERSGameTab.COMBAT), Ord(ERSGameTab.MAGIC))));
-
-      Wait(300, 3000, wdLeft);
+      GameTabs.Open(ERSGameTab(SRL.NormalRange(Ord(ERSGameTab.COMBAT), Ord(ERSGameTab.MAGIC))));
+      System.Wait(300, 3000, wdLeft);
     end;
 
     GameTabs.Open(ERSGameTab(Random(Ord(ERSGameTab.COMBAT), Ord(ERSGameTab.MAGIC))));
   end else
   begin
-    if Random < 0.50 then
+    if Random() < 0.50 then
     begin
-      GameTabs.Open(ERSGameTab(RandomMean(Ord(ERSGameTab.CLAN), Ord(ERSGameTab.MUSIC))));
-
-      Wait(0, 2500, wdLeft);
+      GameTabs.Open(ERSGameTab(SRL.NormalRange(Ord(ERSGameTab.CLAN), Ord(ERSGameTab.MUSIC))));
+      System.Wait(0, 2500, wdLeft);
     end;
 
     GameTabs.Open(ERSGameTab(Random(Ord(ERSGameTab.CLAN), Ord(ERSGameTab.MUSIC))));
@@ -196,7 +208,7 @@ begin
   currentTab := GameTabs.GetCurrentTab();
   Self.DebugLn('Toggling GameTabs');
   Self.RandomTab();
-  BioWait(500, 7000, wdLeft);
+  Self.BioWait(500, 7000, wdLeft);
   GameTabs.Open(currentTab);
 end;
 
@@ -211,7 +223,7 @@ begin
   if Inventory.GetSelectedSlot() > -1 then
   begin
     Inventory.SetSelectedSlot(-1);
-    Wait(50, 250, wdLeft);
+    Self.BioWait(50, 250, wdLeft);
   end;
 
   if not Inventory.FindItems(items, currentSlots) then
@@ -232,7 +244,7 @@ begin
   for i := 0 to High(currentSlots) do
   begin
     Inventory.Drag(currentSlots[i], newSlots[i]);
-    Wait(50, 250, wdLeft);
+    Self.BioWait(50, 250, wdLeft);
   end;
 end;
 
@@ -272,14 +284,13 @@ end;
 procedure TAntiban.CheckSlayerHelm();
 const
   ITEM_LIST: TRSItemArray = [
-    'Slayer helmet', 'Slayer helmet (i)',
-    'Black slayer helmet', 'Black slayer helmet (i)',
-    'Green slayer helmet', 'Green slayer helmet (i)',
-    'Red slayer helmet', 'Red slayer helmet (i)',
-    'Purple slayer helmet', 'Purple slayer helmet (i)',
-    'Turquoise slayer helmet', 'Turquoise slayer helmet (i)',
-    'Hydra slayer helmet', 'Hydra slayer helmet (i)',
-    'Twisted slayer helmet', 'Twisted slayer helmet (i)'
+  'Slayer helmet', 'Black slayer helmet', 'Green slayer helmet', 'Red slayer helmet',
+  'Purple slayer helmet', 'Turquoise slayer helmet', 'Hydra slayer helmet',
+  'Twisted slayer helmet', 'Tztok slayer helmet', 'Vampyric slayer helmet',
+  'Tzkal slayer helmet', 'Slayer helmet (i)', 'Black slayer helmet (i)',
+  'Green slayer helmet (i)', 'Red slayer helmet (i)', 'Purple slayer helmet (i)',
+  'Turquoise slayer helmet (i)', 'Hydra slayer helmet (i)', 'Twisted slayer helmet (i)',
+  'Tztok slayer helmet (i)', 'Vampyric slayer helmet (i)', 'Tzkal slayer helmet (i)'
   ];
 var
   i: Int32;
@@ -339,7 +350,7 @@ begin
 end;
 
 
-procedure TAntiban.OpenSkill(Skill: ERSSkill; Time: Int32; ReturnToCurrentTab: Boolean);
+procedure TAntiban.OpenSkill(Skill: ERSSkill; time: Int32; ReturnToCurrentTab: Boolean);
 var
   Tab: ERSGameTab;
 begin
@@ -351,11 +362,11 @@ begin
   if Stats.MouseOver(Skill) then
   begin
     Mouse.Click(MOUSE_LEFT);
-    WaitUntil(MainScreen.IsScrollOpen, 100, 3000);
-    Wait(Time);
+    WaitUntil(RSInterface.IsOpen(ERSInterfaceType.SCROLL), 100, 3000);
+    Self.BioWait(time);
 
-    while MainScreen.IsScrollOpen do
-      MainScreen.CloseInterface;
+    while RSInterface.IsOpen(ERSInterfaceType.SCROLL) do
+      RSInterface.Close();
 
     if ReturnToCurrentTab then
       GameTabs.Open(Tab);
@@ -370,13 +381,13 @@ begin
     Exit;
   end;
 
-  Self.OpenSkill(Self.Skills[Random(Length(Self.Skills))], RandomLeft(1000, 10000), SRL.Dice(50));
+  Self.OpenSkill(Self.Skills[Random(Length(Self.Skills))], SRL.TruncatedGauss(1000, 10000), SRL.Dice(50));
 end;
 
 procedure TAntiban.RandomAchievementTab();
 begin
   Self.DebugLn('Random Achievement Tab');
-  Achievements.OpenTab(ERSAchievementTab(Random(0, Ord(FAVOUR))));
+  Achievements.OpenTab(ERSAchievementTab(Random(0, Ord(High(ERSAchievementTab)))));
 end;
 
 procedure TAntiban.ToggleAchievementTabs();
@@ -395,13 +406,13 @@ begin
   if Self.BioDice(50) then
   begin
     case Achievements.GetCurrentTab() of
-      QUESTS, DIARIES:
+      ERSAchievementTab.QUESTS, ERSAchievementTab.DIARIES:
         Achievements.RandomScroll(Achievements.GetScrollPosition() < 50);
     end;
   end;
 
   repeat
-    Wait(50, 150);
+    System.Wait(50, 150);
   until GetTickCount() > done;
 
   Achievements.OpenTab(currentTab);
@@ -427,13 +438,13 @@ begin
   if Minimap.IsRunEnabled() then
   begin
     Minimap.DisableRun();
-    BioWait(1000, 4000);
+    Self.BioWait(1000, 4000);
     Minimap.EnableRun();
     Exit;
   end;
 
   Minimap.EnableRun();
-  BioWait(1000, 4000);
+  Self.BioWait(1000, 4000);
   Minimap.DisableRun();
 end;
 
@@ -443,13 +454,13 @@ begin
   if Minimap.IsPrayerEnabled() then
   begin
     Minimap.DisablePrayer();
-    BioWait(1000, 4000);
+    Self.BioWait(1000, 4000);
     Minimap.EnablePrayer();
     Exit;
   end;
 
   Minimap.EnablePrayer();
-  BioWait(1000, 4000);
+  Self.BioWait(1000, 4000);
   Minimap.DisablePrayer();
 end;
 
@@ -459,7 +470,7 @@ procedure TAntiban.ChatScrolling();
 begin
   Self.DebugLn('Random scrolling on chat');
   Chat.RandomScroll(False);
-  BioWait(5000, 8000);
+  Self.BioWait(5000, 8000);
   Chat.SetScrollPosition(100);
 end;
 
@@ -478,7 +489,7 @@ var
 begin
   Self.DebugLn('Toggling chat buttons');
   Self.RandomChatButton;
-  BioWait(3000, 5000);
+  Self.BioWait(3000, 5000);
   ChatButtons.Open(CurrentButton);
 end;
 
@@ -542,7 +553,7 @@ begin
   Self.DebugLn('Toggling bank tabs');
   currentTab := Bank.GetCurrentTab();
   Self.RandomBankTab();
-  BioWait(3000, 4000, wdLeft);
+  Self.BioWait(3000, 4000, wdLeft);
   Bank.OpenTab(currentTab);
 end;
 
@@ -587,7 +598,7 @@ begin
   repeat
     Inc(tries);
     rDot := dots[Random(Low(dots),High(dots))];
-    msBox := Minimap.VecToMsRect(Vec3(rDot.X + 2, rDot.Y + 2, 0), 1, 1, a).Bounds();
+    msBox := Minimap.VectorToMSRect(Vec3(rDot.X + 2, rDot.Y + 2, 0), 1, 1, a).Bounds();
     if MainScreen.Bounds.Contains(msBox) then
     begin
       Self.DebugLn('Hovering random ' + toStr(dotType));
@@ -627,31 +638,32 @@ end;
 
 procedure TAntiban.SetupTasks();
 begin
-  if Self.Tasks <> [] then
-    Exit;
+  if Self.Tasks <> [] then Exit;
 
-  if WLSettings.Antiban.Camera then
+  if WLSettings.GetObject('antiban').getJSONObject('tasks').getBoolean('camera') then
   begin
     Self.AddTask(3  * ONE_MINUTE, @Self.AdjustZoom, 0.33);
     Self.AddTask(7  * ONE_MINUTE, @Self.RandomPOVTask, 0.33);
   end;
 
-  if WLSettings.Antiban.Mouse then
+  if WLSettings.GetObject('antiban').getJSONObject('tasks').getBoolean('mouse') then
     Self.AddTask(8  * ONE_MINUTE, @Self.RandomMouseTask, 0.33);
 
-  if WLSettings.Antiban.Chat then
+  if WLSettings.GetObject('antiban').getJSONObject('tasks').getBoolean('chat') then
     Self.AddTask(9  * ONE_MINUTE, @Self.RandomChatTask, 0.33);
 
-  if WLSettings.Antiban.Mouse then
+  if WLSettings.GetObject('antiban').getJSONObject('tasks').getBoolean('mouse') then
     Self.AddTask(10 * ONE_MINUTE, @Self.LoseFocus, 0.33);
 
-  if WLSettings.Antiban.GameTabs then
+  Self.AddTask(11 * ONE_MINUTE, @Self.RandomKeyboard, 0.33);
+
+  if WLSettings.GetObject('antiban').getJSONObject('tasks').getBoolean('gametabs') then
     Self.AddTask(12 * ONE_MINUTE, @Self.RandomGameTabTask, 0.33);
 
-  if WLSettings.Antiban.Bank then
+  if WLSettings.GetObject('antiban').getJSONObject('tasks').getBoolean('bank') then
     Self.AddTask(13 * ONE_MINUTE, @Self.RandomBankTask, 0.33);
 
-  if WLSettings.Antiban.GameTabs then
+  if WLSettings.GetObject('antiban').getJSONObject('tasks').getBoolean('gametabs') then
     Self.AddTask(18 * ONE_MINUTE, @Self.HoverSkills, 0.33);
 
   Self.OnStartTask := @OnStartAntibanTask;
@@ -659,8 +671,7 @@ end;
 
 procedure TAntiban.SetupBreaks();
 begin
-  if Self.Breaks <> [] then
-    Exit;
+  if Self.Breaks <> [] then Exit;
 
   Self.AddBreak(30  * ONE_MINUTE, 2  * ONE_MINUTE, 0.33, 0.01);
   Self.AddBreak(45  * ONE_MINUTE, 5  * ONE_MINUTE, 0.33, 0.15);
@@ -672,13 +683,9 @@ end;
 
 procedure TAntiban.SetupSleep();
 begin
-  if Self.Sleeps <> [] then
-    Exit;
+  if Self.Sleeps <> [] then Exit;
 
-  Self.SetSleepHour();
-  Self.SetSleepLength();
-  Self.AddSleep(WLSettings.Sleep.Hour, WLSettings.Sleep.Length, 0.1, 0.8 + BioHash);
-
+  Self.AddSleep(Self.GetSleepHour(), Self.GetSleepLength() * ONE_HOUR, 0.1, 0.8 + BioHash);
   Self.OnSleeping := @OnSleepingTask;
 end;
 
@@ -687,56 +694,54 @@ procedure TAntiban.WalkingTasks();
 begin
   case Random(0, 500) of //only about 1% chance of antiban while walking
     0:
-      begin
-        if not WLSettings.Antiban.Chat then Exit
-        else if (Random(20) <= 17) then Self.RandomChatButton();
-        //else Self.RandomChatButtonState();    //TODO...
-      end;
+    begin
+      if not WLSettings.GetObject('antiban').getJSONObject('tasks').getBoolean('chat') then Exit
+      else if (Random(20) <= 17) then Self.RandomChatButton();
+      //else Self.RandomChatButtonState();    //TODO...
+    end;
 
     1..5:
-      begin
-        if not WLSettings.Antiban.Camera then Exit
-        else if (Random(10) <= 3) then Self.RandomRotate();
-      end;
+    begin
+      if not WLSettings.GetObject('antiban').getJSONObject('tasks').getBoolean('camera') then Exit
+      else if (Random(10) <= 3) then Self.RandomRotate();
+    end;
 
     6..10:
-      begin
-        if not WLSettings.Antiban.Mouse then Exit
-        else if (Random(10) <= 3) then Self.RandomRightClick()
-        else Self.SmallRandomMouse();
-      end;
+    begin
+      if not WLSettings.GetObject('antiban').getJSONObject('tasks').getBoolean('mouse') then Exit
+      else if (Random(10) <= 3) then Self.RandomRightClick()
+      else Self.SmallRandomMouse();
+    end;
 
     10, 14:
-      begin
-        if not WLSettings.Antiban.GameTabs then Exit
-        else if (Random(10) <= 9) then Self.RandomTab()
-        else Self.CheckCharges();
-      end;
+    begin
+      if not WLSettings.GetObject('antiban').getJSONObject('tasks').getBoolean('gametabs') then Exit
+      else if (Random(10) <= 9) then Self.RandomTab()
+      else Self.CheckCharges();
+    end;
   end;
 end;
 
-// Antiban tasks that can be performed while using walker.
-{$H-}
-procedure WalkerTasks(Walker: PRSWalker; Position: TPoint; Destination: TPoint);
+procedure TAntiban.WalkingTasks({$H-}walker: PRSWalker; position: TPoint; destination: TPoint);{$H+} overload;
 begin
-  Antiban.WalkingTasks();
+  Self.WalkingTasks();
 end;
-{$H+}
+
 
 procedure TAntiban.Setup(); //override me to add stuff!
 begin
-  Mouse.Speed      := 10 + Self.GetBehavior(EBioBehavior.MOUSE_SPEED);
-  Mouse.Gravity    := 8  + Round(Self.GetBehavior(EBioBehavior.MOUSE_GRAVITY) / 2);
+  Mouse.Speed      := 15 + Self.GetBehavior(EBioBehavior.MOUSE_SPEED);
+  Mouse.Gravity    := 9  + Round(Self.GetBehavior(EBioBehavior.MOUSE_GRAVITY) / 2);
   Mouse.Wind       := 3  + Round(Self.GetBehavior(EBioBehavior.MOUSE_WIND) / 2);
   Mouse.MissChance := 11 + Self.GetBehavior(EBioBehavior.MOUSE_MISS);
 
-  if WLSettings.Antiban.Enabled then
+  if WLSettings.GetObject('antiban').getJSONObject('tasks').getBoolean('enabled') then
     Self.SetupTasks();
 
-  if WLSettings.Breaks then
+  if WLSettings.GetObject('antiban').getBoolean('breaks') then
     Self.SetupBreaks();
 
-  if WLSettings.Sleep.Enabled then
+  if WLSettings.GetObject('antiban').getJSONObject('sleep').getBoolean('enabled') then
     Self.SetupSleep();
 
   if not InRange(MM2MS.GetZoomLevel(), Self.MinZoom, Self.MaxZoom) then

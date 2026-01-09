@@ -1,4 +1,20 @@
 {
+  "Burning claws": {
+    "type": "melee",
+    "speed": 4,
+    "range": 1,
+    "two-handed": true,
+    "special_attack": 30,
+    "level_requirements": {
+      "attack": 60,
+      "strength": 0,
+      "ranged": 0,
+      "magic": 0,
+      "defence": 0,
+      "hitpoints": 0,
+      "prayer": 0
+    }
+  },
   "Saradomin godsword": {
     "type": "melee",
     "speed": 6,
@@ -823,6 +839,70 @@
     "special_attack": 0,
     "level_requirements": {
       "attack": 80,
+      "strength": 0,
+      "ranged": 0,
+      "magic": 0,
+      "defence": 0,
+      "hitpoints": 0,
+      "prayer": 0
+    }
+  },
+  "Zombie axe": {
+    "type": "melee",
+    "speed": 5,
+    "range": 1,
+    "two-handed": false,
+    "special_attack": 0,
+    "level_requirements": {
+      "attack": 65,
+      "strength": 0,
+      "ranged": 0,
+      "magic": 0,
+      "defence": 0,
+      "hitpoints": 0,
+      "prayer": 0
+    }
+  },
+  "Noxious halberd": {
+    "type": "melee",
+    "speed": 5,
+    "range": 2,
+    "two-handed": true,
+    "special_attack": 0,
+    "level_requirements": {
+      "attack": 80,
+      "strength": 0,
+      "ranged": 0,
+      "magic": 0,
+      "defence": 0,
+      "hitpoints": 0,
+      "prayer": 0
+    }
+  },
+  "Dual macuahuitl": {
+    "type": "melee",
+    "speed": 4,
+    "range": 1,
+    "two-handed": true,
+    "special_attack": 0,
+    "level_requirements": {
+      "attack": 70,
+      "strength": 75,
+      "ranged": 0,
+      "magic": 0,
+      "defence": 0,
+      "hitpoints": 0,
+      "prayer": 0
+    }
+  },
+  "Osmumten's fang": {
+    "type": "melee",
+    "speed": 5,
+    "range": 1,
+    "two-handed": false,
+    "special_attack": 25,
+    "level_requirements": {
+      "attack": 82,
       "strength": 0,
       "ranged": 0,
       "magic": 0,

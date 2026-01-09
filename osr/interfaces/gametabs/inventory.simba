@@ -1,6 +1,5 @@
 (*
-Inventory
-=========
+# Inventory
 Methods to interact with the inventory.
 
 This extends SRL's TRSInventory and related methods.
@@ -16,7 +15,6 @@ const
   DROP_PATTERN_TWO_ROW: TIntegerArray = [0,4,1,5,2,6,3,7,8,12,9,13,10,14,11,15,16,20,17,21,18,22,19,23,20,24,25,26,27,28];
   DROP_PATTERN_TWO_ROW_R: TIntegerArray = [0,4,1,5,2,6,3,7,11,15,10,14,9,13,8,12,16,20,17,21,18,22,19,23,20,24,28,27,26,25];
 
-
 function TRSInventory.FindItems(items: TRSItemArray; out slots: TIntegerArray): Boolean; override;
 var
   item: TRSItem;
@@ -28,16 +26,15 @@ begin
   for item in items do
     tmp += item.GetArray();
 
-  slots := Self.ItemInterface.IndicesOf(tmp);
+  slots := Self.Items.IndicesOf(tmp);
   Result := Length(slots) > 0;
 end;
 
 function TRSInventory.FindItem(item: TRSItem; out slot: Int32): Boolean; override;
 begin
   slot := -1;
-  if not Self.Open() then
-    Exit;
-  slot := Self.ItemInterface.IndexOf(item.GetArray());
+  if not Self.Open() then Exit;
+  slot := Self.Items.IndexOf(item.GetArray());
   Result := slot <> -1;
 end;
 
@@ -77,16 +74,17 @@ begin
 end;
 
 
-function TRSInventory.FindAllItems(Items: TRSItemArray; out Slots: TIntegerArray): Boolean;
+function TRSInventory.FindAllItems(items: TRSItemArray; out Slots: TIntegerArray): Boolean;
 var
-  Item: TRSItem;
+  item: TRSItem;
 begin
-  for Item in Items do
+  for item in items do
   begin
-    if not Self.FindItem(Item, Slots) then
+    if not Self.FindItem(item, slots) then
       Exit(False);
-    Slots := [];
+    slots := [];
   end;
+
   Result := True;
 end;
 
@@ -95,8 +93,7 @@ function TRSInventory.SetSelectedItem(item: TRSItem): Boolean;
 var
   slot: Int32;
 begin
-  if Inventory.FindItem(item, slot) then
-    Result := Self.SetSelectedSlot(slot);
+  Result := Inventory.FindItem(item, slot) and Self.SetSelectedSlot(slot);
 end;
 
 function TRSInventory.Use(slot: Int32; item: TRSItem): Boolean; overload;
@@ -115,18 +112,18 @@ end;
 
 function TRSInventory.GetUsedSlots(): TIntegerArray;
 begin
-  Result := Self.ItemInterface.GetUsedSlots();
+  Result := Self.Items.GetUsedSlots();
 end;
 
 function TRSInventory.GetEmptySlots(): TIntegerArray;
 begin
-  Result := Self.ItemInterface.GetEmptySlots();
+  Result := Self.Items.GetEmptySlots();
 end;
 
 
 function TRSInventory.CountEmptySlots(): Int32;
 begin
-  Result := Self.ItemInterface.CountEmptySlots();
+  Result := Self.Items.CountEmptySlots();
 end;
 
 function TRSInventory.HasSpace(slotsNeeded: Int32 = 1): Boolean;
@@ -136,27 +133,30 @@ end;
 
 
 function TRSInventory.FindRandomItems(items: TRSItemArray): TIntegerArray;
+var
+  item: TRSItem;
+  itemArray: TRSItemArray;
 begin
-  Result := Self.ItemInterface.FindRandomItems(items);
+  for item in items do itemArray += item.GetArray();
+  Result := Self.Items.FindRandomItems(itemArray);
 end;
 
 function TRSInventory.ContainsRandomItems(items: TRSItemArray): Boolean;
+var
+  item: TRSItem;
+  itemArray: TRSItemArray;
 begin
-  Result := Self.ItemInterface.ContainsRandomItems(items);
-end;
-
-function TRSInventory.HasRandomItem(items: TRSItemArray): Boolean; deprecated 'Use TRSInventory.ContainsRandomItems() instead.';
-begin
-  Result := Self.ItemInterface.ContainsRandomItems(items);
+  for item in items do itemArray += item.GetArray();
+  Result := Self.Items.ContainsRandomItems(itemArray);
 end;
 
 
 function TRSInventory.Drag(initialSlot, finalSlot: Int32): Boolean;
 begin
-  Result := Self.ItemInterface.Move(initialSlot, finalSlot);
+  Result := Self.Items.Move(initialSlot, finalSlot);
 end;
 
-function TRSInventory.WaitItemFade(Slot: Int32): Boolean;
+function TRSInventory.WaitItemFade(slot: Int32): Boolean;
 begin
   if WaitUntil(not Inventory.IsSlotUsed(Slot), 10, 300) then
     Result := WaitUntil(Inventory.IsSlotUsed(Slot), 50, 300);
@@ -165,7 +165,6 @@ end;
 
 function TRSInventory.ClickSlot(slot: Int32; option: String = ''): Boolean; override;
 var
-  i: Int32;
   upText: String;
 begin
   if Self.MouseSlot(slot) then
@@ -180,16 +179,7 @@ begin
 
     if (option = '') or upText.Contains(option) then
     begin
-      Mouse.Click(MOUSE_LEFT);
-
-      if (Random < Antiban.GetUniqueNumber(0.07, 0.05, 0.1)) then
-      for i := 0 to Round(Antiban.GetUniqueNumber(2, 1, 3)) do
-      begin
-        Mouse.Click(Mouse.Position(), MOUSE_LEFT);
-
-        Wait(0, 100, wdLeft);
-      end;
-
+      Antiban.BioClick(MOUSE_LEFT);
       Exit(True);
     end;
 
@@ -199,7 +189,6 @@ end;
 
 function TRSInventory.ClickSlot(slot: Int32; options: TStringArray): Boolean; overload;
 var
-  i: Int32;
   upText: String;
 begin
   if Self.MouseSlot(slot) then
@@ -214,15 +203,7 @@ begin
 
     if (options = []) or upText.ContainsAny(options) then
     begin
-      Mouse.Click(MOUSE_LEFT);
-      if (Random < Antiban.GetUniqueNumber(0.07, 0.05, 0.1)) then
-      for i := 0 to Round(Antiban.GetUniqueNumber(2, 1, 3)) do
-      begin
-        Mouse.Click(Mouse.Position(), MOUSE_LEFT);
-
-        Wait(0, 100, wdLeft);
-      end;
-
+      Antiban.BioClick(MOUSE_LEFT);
       Exit(True);
     end;
 
@@ -233,7 +214,6 @@ end;
 
 function TRSInventory.ClickItem(item: TRSItem; option: String = ''): Boolean; override;
 var
-  i: Int32;
   upText: String;
 begin
   if Self.MouseItem(item) then
@@ -248,16 +228,7 @@ begin
 
     if (option = '') or upText.Contains(option) then
     begin
-      Mouse.Click(MOUSE_LEFT);
-
-      if (Random < Antiban.GetUniqueNumber(0.07, 0.05, 0.1)) then
-      for i := 0 to Round(Antiban.GetUniqueNumber(2, 1, 3)) do
-      begin
-        Mouse.Click(Mouse.Position(), MOUSE_LEFT);
-
-        Wait(0, 100, wdLeft);
-      end;
-
+      Antiban.BioClick(MOUSE_LEFT);
       Exit(True);
     end;
 
@@ -267,7 +238,6 @@ end;
 
 function TRSInventory.ClickItem(item: TRSItem; options: TStringArray): Boolean; overload;
 var
-  i: Int32;
   upText: String;
 begin
   if Self.MouseItem(item) then
@@ -282,15 +252,7 @@ begin
 
     if (options = []) or upText.ContainsAny(options) then
     begin
-      Mouse.Click(MOUSE_LEFT);
-      if (Random < Antiban.GetUniqueNumber(0.07, 0.05, 0.1)) then
-      for i := 0 to Round(Antiban.GetUniqueNumber(2, 1, 3)) do
-      begin
-        Mouse.Click(Mouse.Position(), MOUSE_LEFT);
-
-        Wait(0, 100, wdLeft);
-      end;
-
+      Antiban.BioClick(MOUSE_LEFT);
       Exit(True);
     end;
 

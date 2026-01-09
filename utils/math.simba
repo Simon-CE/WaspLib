@@ -1,6 +1,5 @@
 (*
-Math
-====
+# Math
 This file has math related methods.
 *)
 
@@ -10,51 +9,49 @@ This file has math related methods.
 {$ENDIF}
 
 (*
-Double.GetDigit
-~~~~~~~~~~~~~~~
-.. pascal:: function Double.GetDigit(n: Int32): Int32;
+## Double.GetDigit
+```pascal
+function Double.GetDigit(n: Int32): Integer;
+```
+Get the digit at the **n**th place of the Double.
 
-Get the digit at the **n** place of the Double.
+Credits: Slacky
 
-Example
--------
-
-  var
-    BioHash := 0.0123456789;
-  begin
-    WriteLn BioHash.GetDigit(4); //will print 3
-  end;
-*)
-function Double.GetDigit(n: Int32): Int32;
+Example:
+```pascal
+var
+  BioHash := 0.0123456789;
 begin
-  Result := Floor(Self * Power(10, n)) mod 10;
+  WriteLn BioHash.GetDigit(4); //will print 3
+end;
+```
+*)
+function Double.GetDigit(n: Int32): Integer;
+begin
+  Result := Trunc(Self*10**(n+1)) mod 10;
 end;
 
 (*
-NumberPerHour
-~~~~~~~~~~~~~
-.. pascal::
-  function NumberPerHour(n: Int64): Int32;
-  function NumberPerHour(n: Double): Int32; overload;
-
+## NumberPerHour
+```pascal
+function NumberPerHour(n: Int64): Int32;
+function NumberPerHour(n: Double): Int32; overload;
+```
 Calculate how many **n** per hour. You can optionally specify the amount of **time** to use in the calculation.
 
-Example
--------
-  WriteLn NumberPerHour(10000, 2 * ONE_HOUR); //will print 5000.
+Example:
+```pascal
+WriteLn NumberPerHour(10000, 2 * ONE_HOUR); //will print 5000.
+```
 *)
 function NumberPerHour(n: Int64; time: UInt64 = -1): Int32;
 begin
-  if time = -1 then
-    time := GetTimeRunning();
-
+  if time = -1 then time := GetTimeRunning();
   Result := Round(n / time * ONE_HOUR);
 end;
 
 function NumberPerHour(n: Double; time: UInt64 = -1): Double; overload;
 begin
-  if time = -1 then
-    time := GetTimeRunning();
-
+  if time = -1 then time := GetTimeRunning();
   Result := n / time * ONE_HOUR;
 end;

@@ -1,6 +1,5 @@
 (*
-Magic
-=====
+# Magic
 Extends SRL's TRSMagic.
 *)
 
@@ -10,9 +9,10 @@ Extends SRL's TRSMagic.
 {$ENDIF}
 
 (*
-Magic.SpellWasCast
-~~~~~~~~~~~~~~~~~~
-.. pascal:: function TRSMagic.SpellWasCast(spell: ERSSpell): Boolean;
+## Magic.SpellWasCast
+```pascal
+function TRSMagic.SpellWasCast(spell: ERSSpell): Boolean;
+```
 
 Internal helper function to decide wether we cast a spell or not.
 *)
@@ -22,9 +22,10 @@ begin
 end;
 
 (*
-Magic.CastSpell
-~~~~~~~~~~~~~~~
-.. pascal:: function TRSMagic.CastSpell(spell: ERSSpell): Boolean; override;
+## Magic.CastSpell
+```pascal
+function TRSMagic.CastSpell(spell: ERSSpell): Boolean; override;
+```
 
 Overrides the existing SRL TRSMagic.CastSpell() for better cast detection with
 the usage of WaspLib's TRSMagic.SpellWasCast().
@@ -37,43 +38,41 @@ end;
 
 
 (*
-Magic.GetFilterButton
-~~~~~~~~~~~~~~~~~~~~~
-.. pascal:: function TRSMagic.GetFilterButton(): TRSButton;
-
+## Magic.GetFilterButton
+```pascal
+function TRSMagic.GetFilterButton(): TRSButton;
+```
 Returns the filter button in the magic tab.
 
-Example
--------
-
-  Debug([Magic.GetFilterButton()]);
+Example:
+```pascal
+Debug([Magic.GetFilterButton()]);
+```
 *)
 function TRSMagic.GetFilterButton(): TRSButton;
-var
-  b: TBox;
 begin
-  b := Self.Bounds();
-  b.Y1 := b.Y2 - 16;
-  b.X1 += 69;
-  b.X2 -= 69;
+  Result.Bounds := Self.Bounds;
+  Result.Bounds.Y1 := Result.Bounds.Y2 - 16;
+  Result.Bounds.X1 += 69;
+  Result.Bounds.X2 -= 69;
 
   Result.Index := 0;
-  Result.Bounds := b;
-  Result.Middle := b.Middle();
+  Result.Middle := Result.Bounds.Center();
   Result.EnabledColors := Self.ButtonEnabledColors;
 end;
 
 (*
-Magic.FiltersIsOpen
-~~~~~~~~~~~~~~~~~~~
-.. pascal:: function TRSMagic.FiltersIsOpen(): Boolean;
+## Magic.FiltersIsOpen
+```pascal
+function TRSMagic.FiltersIsOpen(): Boolean;
+```
 
 Returns true/false if the filters interface of the magic tab is open.
 
-Example
--------
-
-  WriteLn Magic.FiltersIsOpen();
+Example:
+```pascal
+WriteLn Magic.FiltersIsOpen();
+```
 *)
 function TRSMagic.FiltersIsOpen(): Boolean;
 begin
@@ -81,17 +80,18 @@ begin
 end;
 
 (*
-Magic.OpenFilters
-~~~~~~~~~~~~~~~~~
-.. pascal:: function TRSMagic.OpenFilters(): Boolean;
+## Magic.OpenFilters
+```pascal
+function TRSMagic.OpenFilters(): Boolean;
+```
 
 Attempts to open the filters interface of the magic tab.
 Returns true on success.
 
-Example
--------
-
-  WriteLn Magic.OpenFilters();
+Example:
+```pascal
+WriteLn Magic.OpenFilters();
+```
 *)
 function TRSMagic.OpenFilters(): Boolean;
 begin
@@ -99,17 +99,18 @@ begin
 end;
 
 (*
-Magic.CloseFilters
-~~~~~~~~~~~~~~~~~~
-.. pascal:: function TRSMagic.CloseFilters(): Boolean;
+## Magic.CloseFilters
+```pascal
+function TRSMagic.CloseFilters(): Boolean;
+```
 
 Attempts to close the filters interface of the magic tab.
 Returns true on success.
 
-Example
--------
-
-  WriteLn Magic.CloseFilters();
+Example:
+```pascal
+WriteLn Magic.CloseFilters();
+```
 *)
 function TRSMagic.CloseFilters(): Boolean;
 begin
@@ -119,16 +120,17 @@ end;
 
 
 (*
-Magic.GetBookSpellCount
-~~~~~~~~~~~~~~~~~~~~~~~
-.. pascal:: function TRSMagic.GetBookSpellCount(): Int32;
+## Magic.GetBookSpellCount
+```pascal
+function TRSMagic.GetBookSpellCount(): Int32;
+```
 
 Returns the number of spells declared in SRL for the current spellbook.
 
-Example
--------
-
-  WriteLn Magic.GetBookSpellCount();
+Example:
+```pascal
+WriteLn Magic.GetBookSpellCount();
+```
 *)
 function TRSMagic.GetBookSpellCount(): Int32;
 begin
@@ -143,18 +145,19 @@ begin
 end;
 
 (*
-Magic.CountSpells
-~~~~~~~~~~~~~~~~~
-.. pascal:: function TRSMagic.CountSpells(): Int32;
+## Magic.CountSpells
+```pascal
+function TRSMagic.CountSpells(): Int32;
+```
 
 Returns the number of spells that exist in your magic tab.
 
-Example
--------
-
-  WriteLn Magic.CountSpells();
-  if Magic.GetBookSpellCount() <> Magic.CountSpells() then
-    WriteLn 'Something is wrong!';
+Example:
+```pascal
+WriteLn Magic.CountSpells();
+if Magic.GetBookSpellCount() <> Magic.CountSpells() then
+  WriteLn 'Something is wrong!';
+```
 *)
 function TRSMagic.CountSpells(): Int32;
 var
@@ -162,7 +165,7 @@ var
   atpa: T2DPointArray;
   b: TBox;
 begin
-  b := Self.Bounds();
+  b := Self.Bounds;
   b.Y2 -= 17;
 
   SRL.FindColors(tpa, CTS2(1574932, 7, 3.33, 7.97), b);
@@ -181,16 +184,17 @@ begin
 end;
 
 (*
-Magic.GetFilterButtons
-~~~~~~~~~~~~~~~~~~~~~~
-.. pascal:: function TRSMagic.GetFilterButtons(): TRSButtonArray;
+## Magic.GetFilterButtons
+```pascal
+function TRSMagic.GetFilterButtons(): TRSButtonArray;
+```
 
 Returns the buttons of the magic tab filter interface.
 
-Example
--------
-
-  Debug(Magic.GetFilterButtons());
+Example:
+```pascal
+Debug(Magic.GetFilterButtons());
+```
 *)
 function TRSMagic.GetFilterButtons(): TRSButtonArray;
 var
@@ -201,7 +205,7 @@ begin
   if not Self.FiltersIsOpen() then
     Exit;
 
-  b := Self.Bounds();
+  b := Self.Bounds;
 
   tba := Grid(1, 7, 179, 24, [0, 1], [b.X1+2, b.Y1 + 45]);
 
@@ -211,43 +215,45 @@ begin
   begin
     Result[i].Index := i;
     Result[i].Bounds := tba[i];
-    Result[i].Middle := tba[i].Middle;
+    Result[i].Middle := tba[i].Center();
     Result[i].EnabledColors := [CTS1(5284953, 57)];
   end;
 end;
 
 (*
-Magic.IsFiltered
-~~~~~~~~~~~~~~~~
-.. pascal:: function TRSMagic.IsFiltered(): Boolean;
+## Magic.IsFiltered
+```pascal
+function TRSMagic.IsFiltered(): Boolean;
+```
 
 Returns wether the spells are currently filtered or not.
 Can work with the filter interface open or closed as long as the magic tab is open.
 
-Example
--------
-
-  WriteLn Magic.IsFiltered();
+Example:
+```pascal
+WriteLn Magic.IsFiltered();
+```
 *)
 function TRSMagic.IsFiltered(): Boolean;
 begin
   if Self.FiltersIsOpen() then
-    Exit(SRL.CountColor(CTS2(5945703, 20, 0.05, 0.58), Self.Bounds()) <> 259);
+    Exit(SRL.CountColor(CTS2(5945703, 20, 0.05, 0.58), Self.Bounds) <> 259);
 
   Result := Self.CountSpells() <> Self.GetBookSpellCount();
 end;
 
 (*
-Magic.DisableFilters
-~~~~~~~~~~~~~~~~~~~~
-.. pascal:: function TRSMagic.DisableFilters(): Boolean;
+## Magic.DisableFilters
+```pascal
+function TRSMagic.DisableFilters(): Boolean;
+```
 
 Attempts to disable magic spell filters.
 
-Example
--------
-
-  WriteLn Magic.DisableFilters();
+Example:
+```pascal
+WriteLn Magic.DisableFilters();
+```
 *)
 function TRSMagic.DisableFilters(): Boolean;
 var

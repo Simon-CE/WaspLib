@@ -1,7 +1,6 @@
 (*
-XPDrop
-======
-Methods to interact with the XP Drops.
+# XPBar
+Extensions to SRL's {ref}`XPBar`
 *)
 
 {$DEFINE WL_XPBAR_INCLUDED}
@@ -9,35 +8,10 @@ Methods to interact with the XP Drops.
   {$I WaspLib/osr.simba}
 {$ENDIF}
 
-function TRSXPBar.EarnedXP(currentXP: Int32): Boolean;
-begin
-  Result := currentXP > WL.XP.Previous;
-
-  if Result then
-  begin
-    if WL.XP.Previous > 0 then
-      StatsPayload.Update(currentXP-WL.XP.Previous, 0, 0);
-    WL.Activity.Restart();
-    WL.XP.Previous := currentXP;
-  end;
-end;
-
-function TRSXPBar.EarnedXP(): Boolean; overload;
-begin
-  Result := Self.EarnedXP(Self.Read());
-end;
-
-function TRSXPBar.WaitXP(waitTime: Int32 = 600; interval: Int32 = -1): Boolean;
-begin
-  if (interval = -1) then
-    interval := SRL.TruncatedGauss(50, 200);
-
-  Result := WaitUntil(Self.EarnedXP(), interval, waitTime);
-end;
-
-function TRSXPBar.Read(): Int32; override;
+function TRSXPBar.Read(): Int64; override;
 var
   i: Int32;
+  xpStr: String;
 begin
   if not Self.IsSetup then
     Self._Setup();
@@ -45,33 +19,32 @@ begin
   if not Self.IsSetup or not Self.Enable() then
     Exit;
 
-  Result := OCR.RecognizeNumber(Self.Bounds(), TOCRColorFilter.Create([$FFFFFF]), Self.Font);
+  xpStr := OCR.Recognize(Self.Bounds, TOCRColorFilter.Create([$FFFFFF]), Self.Font);
+  Result := xpStr.ExtractInteger(0);
 
-  WL.XP.IsSetup := (Result > 0) and (Result >= WL.XP.Previous);
+  Self.Tracker.IsSetup := (Result > 0) and (Result >= Self.Tracker.Current);
 
-  if not WL.XP.IsSetup and (WL.XP.Previous = 0) and MainScreen.HasInterface() then
-  begin
-    if MainScreen.CloseInterface() then
+  if not Self.Tracker.IsSetup and (Self.Tracker.Current = 0) and RSInterface.IsOpen() then
+    if RSInterface.Close() then
     begin
       Self.IsSetup := False;
       Exit(Self.Read());
     end;
-  end;
 
-  if WL.XP.IsSetup then
+  if Self.Tracker.IsSetup then
   begin
-    if WL.XP.Start = 0 then
-      WL.XP.Start := Result;
+    if Self.Tracker.Start = 0 then
+      Self.Tracker.Start := Result;
 
-    if WL.XP.Previous = 0 then
-      WL.XP.Previous := Result;
+    if (Self.Tracker.Current = 0) or (Result > Self.Tracker.Current) then
+      Self.Tracker.Current := Result;
 
     Exit;
   end;
 
-  if not WL.GameSettings.XPBarIsSetup and not MainScreen.HasInterface() then
+  if not WL.GameSettings.XPBarIsSetup and not RSInterface.IsOpen() then
   begin
-    Mouse.Click(Minimap.GetXPCircle(), MOUSE_LEFT);
+    Mouse.Click(Minimap.Orbs[ERSMinimapOrb.EXPERIENCE], MOUSE_LEFT);
 
     repeat
       Wait(50, 250, wdLeft);
@@ -83,11 +56,22 @@ begin
       Inc(i);
     until Self.Enable();
 
-    Result := OCR.RecognizeNumber(Self.Bounds(), TOCRColorFilter.Create([$FFFFFF]), Self.Font);
-    WL.XP.IsSetup := (Result > 0) and (Result >= WL.XP.Previous);
+    Result := OCR.RecognizeNumber(Self.Bounds, TOCRColorFilter.Create([$FFFFFF]), Self.Font);
+    Self.Tracker.IsSetup := (Result > 0) and (Result >= Self.Tracker.Current);
 
-    if not WL.XP.IsSetup then
+    if not Self.Tracker.IsSetup then
       XPBarSetup.Fix();
   end;
 end;
 
+function TRSXPBar.EarnedXP(): Boolean; override;
+begin
+  Result := Self.Read() > Self.Tracker.Previous;
+
+  if Result and Self.Tracker.IsSetup then
+  begin
+    APIClient.UpdatePayload(Self.Tracker.Current-Self.Tracker.Previous, 0, 0);
+    WL.Activity.Restart();
+    Self.Tracker.Previous := Self.Tracker.Current;
+  end;
+end;

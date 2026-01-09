@@ -1,18 +1,17 @@
 (*
-RSClient
-========
+# RSClient
 Extensions to TRSClient.
 
 One thing to keep in mind is that WaspLib enforces the use of Remote Input by default.
 
 To disable it you have to use either of this snippets in your scripts:
 
-.. pascal::
-  {$DEFINE SRL_DISABLE_REMOTEINPUT}
-  //or
-  begin
-    WLSettings.RemoteInput.Enabled := False;
-  end;
+```pascal
+{$DEFINE SRL_DISABLE_REMOTEINPUT}
+//or
+begin
+WLSettings.RemoteInput.Enabled := False;
+end;
 *)
 {$DEFINE WL_RSCLIENT_INCLUDED}
 {$IFNDEF WL_OSR}
@@ -23,16 +22,18 @@ procedure TRSClient.Setup(); override;
 begin
   Self.Name := 'RSClient';
 
+  if not Self.Revalidate() then
+    TerminateScript('Please refocus the client!');
+
   {$IFNDEF SRL_DISABLE_REMOTEINPUT}
     {$IFNDEF SCRIPT_GUI}
       Self.RemoteInput.Setup();
     {$ENDIF}
   {$ENDIF}
 
-  Self.Mode := Self.DetectClientMode();
+  Self.Mode := Self.DetectClientMode(True);
   if Self.Mode = ERSClientMode.UNKNOWN then
     Self.Mode := ERSClientMode.FIXED; // Fixed as default so we can login if needed
-
   Self.ClientModeChanged();
 end;
 
@@ -44,13 +45,9 @@ end;
 
 procedure TRSClient.CheckClientSettings();
 var
-  userB, expB: TBox;
+  userB: TBox;
 begin
-  if not WL.GameSettings.HighestPitch then
-  begin
-    WL.GameSettings.HighestPitch := True;
-    MainScreen.SetHighestPitch();
-  end;
+  if not MainScreen.HighestPitch then MainScreen.SetHighestPitch();
 
   if not WL.GameSettings.MaxBrightness then
   begin
@@ -63,18 +60,16 @@ begin
   if not WL.GameSettings.RoofsHidden then
     WL.GameSettings.RoofsHidden := Options.HideRoofs();
 
-  if WL.XP.Previous = 0 then
+  if XPBar.Tracker.Current = 0 then
     XPBar.Read();
 
-  if WLSettings.SaveVideo.Enabled and not WL.IsRecording then
+  if WLSettings.GetObject('video').getBoolean('enabled') and not WL.IsRecording then
   begin
     userB := Chat.GetDisplayNameBox();
-    if userB = Chat.GetLineBoxes()[CHAT_INPUT_LINE] then
+    if userB = Chat.LineBoxes[CHAT_INPUT_LINE] then
       userB := [];
 
-    expB := XPBar.Bounds();
-
-    Recorder.Start(WLSettings.SaveVideo.Time, WL_DATAPATH + 'videos', userB, expB);
+    Recorder.Start(WLSettings.GetObject('video').GetInt('time'), WL_DATAPATH + 'videos', userB, XPBar.Bounds);
   end;
 end;
 
@@ -84,60 +79,4 @@ begin
 
   if Result then
     Self.CheckClientSettings();
-end;
-
-procedure TRSClient.UpdateState();
-begin
-  Self.DetectClientMode(True);
-  Self.ClientModeChanged();
-end;
-
-function TWaspLib.CountScriptThreads(): Int32;
-var
-  processes, procArr: TOSWindowArray;
-  pids, mainPIDs: TIntegerArray;
-  i, pidCount, procCount: Int32;
-begin
-  processes := GetWindows();
-  for i := 0 to High(processes) do
-  begin
-    if 'simba' in LowerCase(processes[i].GetTitle()) then
-    begin
-      pids += processes[i].GetPID();
-      procArr += processes[i];
-    end;
-  end;
-
-  pids.Sort();
-  pids.ClearDuplicates();
-  pidCount := Length(pids);
-
-  pids := [];
-  for i := 0 to High(procArr) do
-    if procArr[i] = procArr[i].GetRootWindow() then
-      pids += procArr[i].GetPID();
-
-  mainPIDs := pids;
-  mainPIDs.ClearDuplicates();
-  procCount := Length(pids) - Length(mainPIDs);
-  Result := pidCount - procCount * 2;
-end;
-
-procedure TWaspLib.CheckScriptThreads();
-var
-  threads: Int32;
-begin
-  threads := Self.CountScriptThreads();
-
-  {%codetools off}
-  if threads >= %0111 then
-    TerminateScript(
-      'You seem to be running ' + ToString(threads) + ' simba scripts.' +
-      LINEENDING + 'The maximum allowed are 7 instances.' +
-      LINEENDING + 'WaspLib is not meant for gold farming. If this is not the case contact Torwent in discord.');
-  {%codetools on}
-end;
-
-begin
-  WL.CheckScriptThreads();
 end;

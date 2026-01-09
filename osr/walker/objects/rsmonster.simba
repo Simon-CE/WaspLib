@@ -1,10 +1,11 @@
 (*
-RSMonters
-=========
+# RSMonters
 Methods to handle TRSMonters.
 TRSMonters are a type or TRSMMDot that can be fought.
 
-.. note:: For more information on TRSMMDot visit: https://torwent.github.io/WaspLib/walkerobjects.html#type-trsmmdot
+```{note}
+For more information on TRSMMDot visit: https://torwent.github.io/WaspLib/walkerobjects.html#type-trsmmdot
+```
 *)
 
 {$DEFINE WL_RSMONSTER_INCLUDED}
@@ -35,14 +36,15 @@ begin
   Self.Name := name;
 
   Self._Setup();
+  Self.Filter.MinimapDot := True;
 
   Self.DotType := ERSMinimapDot.NPC;
   Self.UpText += name;
 
   Self.Hitpoints := MonsterData.GetInt(name, 'hitpoints');
   Self.MaxHit := MonsterData.GetInt(name, 'max_hit');
-  size := MonsterData.GetInt(name, 'size');
 
+  size := MonsterData.GetInt(name, 'size');
   height := Self.ShapeArray[0].Tile.Z;
 
   case Size of

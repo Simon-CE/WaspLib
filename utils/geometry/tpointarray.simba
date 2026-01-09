@@ -1,6 +1,5 @@
 (*
-TPointArray
-===========
+# TPointArray
 TPointArray related methods that extend SRL's TPoint functionality.
 *)
 
@@ -39,19 +38,19 @@ end;
 
 
 (*
-TPointArray.ToString
-~~~~~~~~~~~~~~~~~~~~
-.. pascal:: function TPointArray.ToString(): String;
-
+## TPointArray.ToString
+```pascal
+function TPointArray.ToString(): String;
+```
 Prints the TPointArray in a way that can be copy pasted into and used by Simba.
 
-Example
--------
-
-  tpa := [[1,1], [2,2], [3,3]];
-  WriteLn tpa.ToString();
+Example:
+```pascal
+tpa := [[1,1], [2,2], [3,3]];
+WriteLn tpa.ToString();
+```
 *)
-function TPointArray.ToString(endLine: Boolean = True): String;
+function TPointArray.ToString(endLine: Boolean = True): String; constref;
 var
   i: Int32;
 begin
@@ -66,20 +65,6 @@ begin
   Result += ']';
   if endLine then
     Result += ';';
-end;
-
-function TPointArray.LimitTo(box: TBox): TPointArray; deprecated 'Use TPointArray.FilterBox() instead';
-begin
-  Result := Self.FilterBox(box);
-end;
-
-function TPointArray.TotalDistance(): Double;
-var
-  i: Int32;
-begin
-  for i := 0 to High(Self) do
-    if i < High(Self) then
-      Result += Self[i].DistanceTo(Self[i+1]);
 end;
 
 function TPointArray.MakeLine(): TPointArray; constref;
@@ -98,16 +83,16 @@ end;
 
 
 (*
-T2DPointArray.Connect
-~~~~~~~~~~~~~~~~~~~~~
-.. pascal:: function T2DPointArray.Connect(): T2DPointArray;
-
+## T2DPointArray.Connect
+```pascal
+function T2DPointArray.Connect(): T2DPointArray;
+```
 Connects each TPointArray in a T2DPointArray. Useful for debugging visually.
 
-Example
--------
-
-  Debug(atpa.Connect());
+Example:
+```pascal
+Debug(atpa.Connect());
+```
 *)
 function T2DPointArray.Connect(): T2DPointArray;
 var

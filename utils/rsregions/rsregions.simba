@@ -3,7 +3,8 @@
   {$I WaspLib/utils.simba}
 {$ENDIF}
 
-type RSRegions = record(TSRLBaseRecord) class var
+type
+  TRSRegions = record
     ABYSS:                      TBox;
     ALTARS:                     TBox;
     AL_KHARID:                  TBox;
@@ -102,9 +103,19 @@ type RSRegions = record(TSRLBaseRecord) class var
     PYRAMID_PLUNDER:            TBox;
     SOPHANEM:                   TBox;
     NARDAH:                     TBox;
+    RUINS_OF_UZER:              TBox;
     PYRAMID_PLUNDER_ENTRANCE:   TBox;
     JORMUNGANDS_PRISON:         TBox;
+    RELLEKKA:                   TBox;
+    UNGAEL:                     TBox;
+    EVIL_CHICKEN_LAIR:          TBox;
+    FEROX_ENCLAVE:              TBox;
+    FOUNTAIN_OF_RUNE:           TBox;
+    SKOTIZO:                    TBox;
   end;
+
+var
+  RSRegions: TRSRegions;
 
 begin
   RSRegions.ABYSS                      := [9670, 4424, 10559, 5400];
@@ -117,7 +128,7 @@ begin
   RSRegions.BLAST_FURNACE              := [10308, 1406, 10559, 1642];
   RSRegions.BRIMHAVEN_DUNGEON          := [1272, 4050, 1930, 4960];
   RSRegions.CASTLE_WARS                := [4628, 3838, 5312, 4420];
-  RSRegions.CATACOMBS_OF_KOUREND       := [0, 2721, 966, 3409];
+  RSRegions.CATACOMBS_OF_KOUREND       := [0, 2740, 685, 3366];
   RSRegions.CATHERBY                   := [6495, 2463, 6910, 2850];
   RSRegions.CHASM_OF_FIRE              := [0, 0, 397, 906];
   RSRegions.CORSAIR_COVE               := [5077, 4605, 5827, 5355];
@@ -134,7 +145,7 @@ begin
   RSRegions.GUARDIANS_OF_THE_RIFT      := [7484, 5232, 7878, 5640];
   RSRegions.RUINS_OF_UNKAH             := [7827, 4852, 8303, 5328];
   RSRegions.SHILO_VILLAGE              := [6560, 4318, 7158, 4714];
-  RSRegions.FOSSIL_ISLAND              := [8800, 592, 9866, 1578];
+  RSRegions.FOSSIL_ISLAND              := [8801, 592, 9867, 1578];
   RSRegions.PEST_CONTROL_ISLAND        := [5550, 5441, 5956, 5828];
   RSRegions.PEST_CONTROL_OUTPOST       := [6022, 4504, 6399, 4851];
   RSRegions.CRANDOR                    := [6520, 3139, 6987, 3617];
@@ -162,7 +173,7 @@ begin
   RSRegions.MYTHS_GUILD_MID_FLOOR      := [10321, 5604, 10559, 5828];
   RSRegions.OTTOS_GROTTO               := [5293, 2256, 5610, 2631];
   RSRegions.PISCARILIUS                := [2444, 1122, 2950, 1500];
-  RSRegions.PISCATORIS                 := [4419, 1902, 5021, 2422];
+  RSRegions.PISCATORIS                 := [4391, 1853, 5021, 2422];
   RSRegions.PRIFDDINAS                 := [3590, 1897, 4238, 2546];
   RSRegions.RIMMINGTON                 := [6988, 3362, 7386, 3710];
   RSRegions.ROGUES_DEN                 := [10262, 799, 10557, 1079];
@@ -183,8 +194,8 @@ begin
   RSRegions.ZULANDRA                   := [3960, 4030, 4500, 4400];
   RSRegions.POH                        := [1749, 0, 2009, 259];
   RSRegions.TEMPOROSS_COVE             := [7345, 4343, 7744, 4736];
-  RSRegions.ZANARIS                    := [9998, 4090, 10081, 4167];
-  RSRegions.VARROCK_SEWERS             := [5407, 770, 6052, 1169];
+  RSRegions.ZANARIS                    := [9715, 3830, 10559, 4472];
+  RSRegions.VARROCK_SEWERS             := [5168, 736, 6096, 1382];
   RSRegions.FOSSIL_ISLAND_UNDERWATER   := [1129, 5407, 1769, 5824];
   RSRegions.KELDAGRIM                  := [2381, 5122, 3028, 5764];
   RSRegions.PORT_KHAZARD               := [5876, 3671, 6179, 3924];
@@ -205,8 +216,15 @@ begin
   RSRegions.PYRAMID_PLUNDER            := [1353, 0, 1751, 397];
   RSRegions.SOPHANEM                   := [8397, 5131, 8762, 5536];
   RSRegions.NARDAH                     := [8908, 4601, 9288, 4987];
+  RSRegions.RUINS_OF_UZER              := [8970, 3880, 9570, 4484];
   RSRegions.PYRAMID_PLUNDER_ENTRANCE   := [9299, 5109, 9526, 5338];
   RSRegions.JORMUNGANDS_PRISON         := [0, 5377, 448, 5828];
+  RSRegions.RELLEKKA                   := [5819, 1562, 6441, 2228];
+  RSRegions.UNGAEL                     := [4899, 1581, 5286, 1995];
+  RSRegions.EVIL_CHICKEN_LAIR          := [10156, 4116, 10553, 4494];
+  RSRegions.FEROX_ENCLAVE              := [7803, 1782, 8097, 2062];
+  RSRegions.FOUNTAIN_OF_RUNE           := [8364, 624, 9062, 1575];
+  RSRegions.SKOTIZO                    := [655, 2730, 957, 3022];
 
   RSNamedRegionsArray := [
     ['Abyss', RSRegions.ABYSS],
@@ -307,10 +325,16 @@ begin
     ['Pyramid Plunder', RSRegions.PYRAMID_PLUNDER],
     ['Sophanem', RSRegions.SOPHANEM],
     ['Nardah', RSRegions.NARDAH],
+    ['Ruins of Uzer', RSRegions.RUINS_OF_UZER],
     ['Pyramid Plunder Entrance', RSRegions.PYRAMID_PLUNDER_ENTRANCE],
-    ['Jormungand''s Prison', RSRegions.JORMUNGANDS_PRISON]
+    ['Jormungand''s Prison', RSRegions.JORMUNGANDS_PRISON],
+    ['Rellekka', RSRegions.RELLEKKA],
+    ['Ungael', RSRegions.UNGAEL],
+    ['Evil Chicken Lair', RSRegions.EVIL_CHICKEN_LAIR],
+    ['Ferox Enclave', RSRegions.FEROX_ENCLAVE],
+    ['Fountain of Rune', RSRegions.FOUNTAIN_OF_RUNE],
+    ['Skotizo', RSRegions.SKOTIZO]
   ];
 
   RSBankRegions.Setup();
-  RSCombatRegions.Setup();
 end;

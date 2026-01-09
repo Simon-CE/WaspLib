@@ -1,5 +1,3 @@
-{$DEFINE SCRIPT_ID := '0fb23f9b-3bc2-41cd-8670-3fec0eb256f1'}
-{$DEFINE SCRIPT_REVISION := '27'}
 {$DEFINE SCRIPT_GUI}
 {$I SRL-T/osr.simba}
 {$I WaspLib/osr.simba}
@@ -48,8 +46,6 @@ begin
     SetLeft(Self.Selector.GetRight() + TControl.AdjustToDPI(40));
     SetTop(TControl.AdjustToDPI(190));
   end;
-
-  Self.CreateVersionPanel(tab);
 
   Self.CreateAntibanManager();
   Self.CreateBankSettings();
