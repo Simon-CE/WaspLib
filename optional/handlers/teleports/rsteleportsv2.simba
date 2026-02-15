@@ -88,6 +88,10 @@ type RSTeleportsV2 = record(TSRLBaseRecord) class var
     CHAOS_TEMPLE_LVL_15: TTeleportLocation;
     BANDIT_CAMP_LVL_17: TTeleportLocation;
     LAVA_MAZE_LVL_41: TTeleportLocation;
+    AIR_ALTAR:  TTeleportLocation;
+    WATER_ALTAR:  TTeleportLocation;
+    EARTH_ALTAR:  TTeleportLocation;
+    FIRE_ALTAR: TTeleportLocation;
     XERICS_LOOKOUT: TTeleportLocation;
     XERICS_GLADE: TTeleportLocation;
     XERICS_INFERNO: TTeleportLocation;
@@ -158,6 +162,7 @@ type RSTeleportsV2 = record(TSRLBaseRecord) class var
     BLP_TZHAAR_AREA: TTeleportLocation;
     BLQ_YUBIUSK: TTeleportLocation;
     BLR_LEGENDS_GUILD: TTeleportLocation;
+    BLS_KEBOWS_LOWLANDS: TTeleportLocation;
     CIP_ISLAND_MISCELLANIA: TTeleportLocation;
     CIQ_NORTHWEST_OF_YANILLE: TTeleportLocation;
     CIS_NORTH_OF_THE_ARCEUUS_LIBRARY: TTeleportLocation;
@@ -398,6 +403,10 @@ begin
   RSTeleportsV2.CHAOS_TEMPLE_LVL_15 := setupTeleportLocation(ETeleportType.JEWELLERY, "Burning Amulet" , "Chaos Temple", [3746, 37009]);
   RSTeleportsV2.BANDIT_CAMP_LVL_17 := setupTeleportLocation(ETeleportType.JEWELLERY, "Burning Amulet" , "Bandit Camp", [3550, 37023]);
   RSTeleportsV2.LAVA_MAZE_LVL_41 := setupTeleportLocation(ETeleportType.JEWELLERY, "Burning Amulet" , "Lava Maze", [3540, 37212]);
+  RSTeleportsV2.AIR_ALTAR := setupTeleportLocation(ETeleportType.OTHER, ["Ring of the elements"], "Air Altar", [7828,37326]);
+  RSTeleportsV2.WATER_ALTAR := setupTeleportLocation(ETeleportType.OTHER, ["Ring of the elements"], "Water Altar", [8560,37802]);
+  RSTeleportsV2.EARTH_ALTAR := setupTeleportLocation(ETeleportType.OTHER, ["Ring of the elements"], "Earth Altar", [9064,36570]);
+  RSTeleportsV2.FIRE_ALTAR := setupTeleportLocation(ETeleportType.OTHER, ["Ring of the elements"], "Fire Altar", [9168,37310]);
   RSTeleportsV2.XERICS_LOOKOUT := setupTeleportLocation(ETeleportType.OTHER, ["Xeric's Talisman"], "Xeric's Lookout", [2088, 37410]);
   RSTeleportsV2.XERICS_GLADE := setupTeleportLocation(ETeleportType.OTHER, ["Xeric's Talisman"], "Xeric's Glade", [2266, 37446]);
   RSTeleportsV2.XERICS_INFERNO := setupTeleportLocation(ETeleportType.OTHER, ["Xeric's Talisman"], "Xeric's Inferno", [2016, 37601]);
@@ -468,6 +477,7 @@ begin
   RSTeleportsV2.BLP_TZHAAR_AREA := setupTeleportLocation(ETeleportType.FAIRY_RING, "BLP", [5166, 34512]);
   RSTeleportsV2.BLQ_YUBIUSK := setupTeleportLocation(ETeleportType.FAIRY_RING, "BLQ", [0, 0]);
   RSTeleportsV2.BLR_LEGENDS_GUILD := setupTeleportLocation(ETeleportType.FAIRY_RING, "BLR", [6866, 37356]);
+  RSTeleportsV2.BLS_KEBOWS_LOWLANDS := setupTeleportLocation(ETeleportType.FAIRY_RING, "BLS", [1080,36450]);
   RSTeleportsV2.CIP_ISLAND_MISCELLANIA := setupTeleportLocation(ETeleportType.FAIRY_RING, "CIP", [7066, 37390]);
   RSTeleportsV2.CIQ_NORTHWEST_OF_YANILLE := setupTeleportLocation(ETeleportType.FAIRY_RING, "CIQ", [6018, 37394]);
   RSTeleportsV2.CIS_NORTH_OF_THE_ARCEUUS_LIBRARY := setupTeleportLocation(ETeleportType.FAIRY_RING, "CIS", [1462, 34964]);
@@ -600,6 +610,10 @@ begin
     RSTeleportsV2.CHAOS_TEMPLE_LVL_15,
     RSTeleportsV2.BANDIT_CAMP_LVL_17,
     RSTeleportsV2.LAVA_MAZE_LVL_41,
+    RSTeleportsV2.AIR_ALTAR,
+    RSTeleportsV2.WATER_ALTAR,
+    RSTeleportsV2.EARTH_ALTAR,
+    RSTeleportsV2.FIRE_ALTAR,
     RSTeleportsV2.XERICS_LOOKOUT,
     RSTeleportsV2.XERICS_GLADE,
     RSTeleportsV2.XERICS_INFERNO,
@@ -661,6 +675,7 @@ begin
     RSTeleportsV2.BLP_TZHAAR_AREA,
     RSTeleportsV2.BLQ_YUBIUSK,
     RSTeleportsV2.BLR_LEGENDS_GUILD,
+    RSTeleportsV2.BLS_KEBOWS_LOWLANDS,
     RSTeleportsV2.CIP_ISLAND_MISCELLANIA,
     RSTeleportsV2.CIQ_NORTHWEST_OF_YANILLE,
     RSTeleportsV2.CIS_NORTH_OF_THE_ARCEUUS_LIBRARY,
@@ -740,6 +755,7 @@ begin
     RSTeleportsV2.BLP_TZHAAR_AREA,
     RSTeleportsV2.BLQ_YUBIUSK,
     RSTeleportsV2.BLR_LEGENDS_GUILD,
+    RSTeleportsV2.BLS_KEBOWS_LOWLANDS,
     RSTeleportsV2.CIP_ISLAND_MISCELLANIA,
     RSTeleportsV2.CIQ_NORTHWEST_OF_YANILLE,
     RSTeleportsV2.CIS_NORTH_OF_THE_ARCEUUS_LIBRARY,
