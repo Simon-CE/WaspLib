@@ -1945,11 +1945,10 @@ end;
 procedure TFarmRun.DepositCompost;
 var
   leprechaunPt     : TPoint;
-  boxes            : TBoxArray := [[],
-                                   [660, 385, 720, 410],
+  boxes            : TBoxArray := [[650, 385, 730, 410],
                                    [555, 425, 625, 455],
-                                   [660, 430, 720, 455],
-                                   [660, 345, 725, 370],
+                                   [650, 430, 730, 455],
+                                   [650, 340, 730, 370],
                                    [  0,   0,   0,   0]];
 begin
   if not RSClient.IsLoggedIn then
@@ -2014,6 +2013,15 @@ begin
     Exit;
   end;
 
+  if not Inventory.FindItem(compostItem, slot) then begin
+    WithdrawCompost;
+
+    if not Inventory.FindItem(compostItem, slot) then begin
+      Self.WriteMsg('Failed to find compost after withdrawing.');
+      Exit;
+    end;
+  end;
+
   Self.WriteMsg('Composting at ' + Self.CurrentPatch.Data.Name + ' patch.');
 
   if not Inventory.SetSelectedSlot(-1) then begin
@@ -2034,18 +2042,6 @@ begin
     Inventory.MouseItem('Bottomless compost bucket');
     if Mainscreen.IsUpText('Fill ') then
       TerminateScript('Our bottomless compost bucket is out of compost');
-
-    Inventory.SetSelectedSlot(slot);
-  end else begin
-    if not Inventory.FindItem(compostItem, slot) then begin
-      WithdrawCompost;
-      if not Inventory.FindItem(compostItem, slot) then begin
-        Self.WriteMsg('Failed to find compost after withdrawing.');
-        Exit;
-      end;
-    end;
-
-    Inventory.SetSelectedSlot(slot);
   end;
 
   Wait(142, 379);
@@ -2060,7 +2056,7 @@ begin
       Exit;
     end;
 
-    if not Self.CurrentPatch.Find then begin
+    if not Self.CurrentPatch.WalkFind then begin
       Self.WriteMsg('Failed to find patch.');
       Continue;
     end;
@@ -2070,7 +2066,11 @@ begin
         Self.WriteMsg('Fertile soil spell isn''t selected anymore');
         Exit;
       end;
-    end else if Inventory.GetSelectedSlot <> slot then begin
+    end;
+
+    Inventory.SetSelectedSlot(slot);
+
+    if Inventory.GetSelectedSlot <> slot then begin
       Self.WriteMsg('Compost item isn''t selected anymore');
       Exit;
     end;
@@ -2715,7 +2715,7 @@ begin
       ScriptWalker^.WalkBlind([816,6104], 12);
       Minimap.WaitMoving();
       Wait(1548, 1732);
-      SRL.FindColors(TPA, CTS2(10007362, 2, 0.16, 3.08), Mainscreen.GetPlayerBox().Expand(80, 80));
+      SRL.FindColors(TPA, CTS2(9149793, 17, 0.07, 1.07), Mainscreen.Bounds);
       Mouse.Move(TPA);
       if not Mainscreen.IsUpText('Travel Renu') then begin
         Self.WriteMsg('Something went wrong clicking Renu');
@@ -2731,6 +2731,7 @@ begin
         RepeatLoop := True;
       end else
         ChooseOption.Select('Last-destination ');
+       Wait(800,1600);
     end else if ('quetzal' in item) then begin
     if (c <= 0) then begin
       Self.WriteMsg('Out of quetzal charges. Skipping patch.');
@@ -3602,7 +3603,7 @@ begin
   FarmRunner.HosidiusTP := HosiTeleportType.getText();
   FarmConfig.hosidiustpint := HosiTeleportType.getItemIndex();
 
-  CiviTeleportType := Self.Form.GetChild('lcb_fguildtp_combobox');
+  CiviTeleportType := Self.Form.GetChild('lcb_civtp_combobox');
   FarmRunner.CivitasTP := CiviTeleportType.getText();
   FarmConfig.civitastpint := CiviTeleportType.getItemIndex();
 
@@ -3617,7 +3618,7 @@ begin
   runes_in_pouch := Self.Form.GetChild('box_runespouch_edit');
   if Length(runes_in_pouch.getText) > 0 then
   begin
-    FarmRunner.RunesInPouch += Lowercase(runes_in_pouch.getText).Split(',');
+    FarmRunner.RunesInPouch += Lowercase(runes_in_pouch.getText).Replace(' ','').Split(',');
     FarmConfig.runepouchstring := ToStr(FarmRunner.RunesInPouch).Between('[',']');
   end;
 
