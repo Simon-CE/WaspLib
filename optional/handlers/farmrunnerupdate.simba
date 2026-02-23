@@ -522,7 +522,7 @@ begin
     PatchData[EFarmPatch.CIVITAS_HERB] := [
     EPatchType.HERB,
     CTS2(3497831, 6, 0.08, 0.22),
-    [[364,6280,368,6284]],
+    [[402,6252,406,6256]],
     [412, 6264],
     CTS2(2188082, 10, 0.10, 1.20),
     'Civitas herb',
@@ -532,7 +532,7 @@ begin
   PatchData[EFarmPatch.CIVITAS_FLOWER] := [
     EPatchType.FLOWER,
     CTS2(3497831, 6, 0.08, 0.22),
-    [[380,6264,384,6268]],
+    [[418,6234,422,6238]],
     [412, 6264],
     CTS2(2188082, 10, 0.10, 1.20),
     'Civitas flower',
@@ -542,7 +542,7 @@ begin
   PatchData[EFarmPatch.CIVITAS_ALLOT_N] := [
     EPatchType.ALLOTMENT,
     CTS2(3497831, 6, 0.08, 0.22),
-    [[364,3256,368,6268], [364,6248,380,6252]],
+    [[402,6218,408,6238], [410,6218,418,6222]],
     [412, 6264],
     CTS2(2188082, 10, 0.10, 1.20),
     'Civitas north allotment',
@@ -552,7 +552,7 @@ begin
   PatchData[EFarmPatch.CIVITAS_ALLOT_S] := [
     EPatchType.ALLOTMENT,
     CTS2(3497831, 6, 0.08, 0.22),
-    [[396,6268,400,6284 ], [380,6280,392,6284]],
+    [[418,6252,438,6256], [434,6246,438,6238]],
     [412, 6264],
     CTS2(2188082, 10, 0.10, 1.20),
     'Civitas south allotment',
@@ -1405,7 +1405,7 @@ procedure TFarmRun.OnStart(); begin
     'Construction cape TRIMMED':
     begin
       if not Self.ConstructionCapeEquipped then
-        Self.FarmWithdrawHelper('Construct. cape', 1);
+        Self.FarmWithdrawHelper('Construct. cape(t)', 1);
     end;
     end;
   end;
@@ -2739,7 +2739,7 @@ begin
     end;
   end else if (TravelMethod = ETravelMethod.CIVITAS_TELEPORT) or (TravelMethod = ETravelMethod.CIVITAS_TABLET) then begin
       Wait(1548, 1732);
-      ScriptWalker^.WalkBlind([816,6104], 12);
+      ScriptWalker^.WalkBlind([850,6078], 12);
       Minimap.WaitMoving();
       Wait(1548, 1732);
       SRL.FindColors(TPA, CTS2(9149793, 17, 0.07, 1.07), Mainscreen.Bounds);
@@ -3433,7 +3433,7 @@ begin
   else
     ScriptWalker^.AddRegions(tmp);
 
-  ScriptWalker^.AddRegionFromURL('https://raw.githubusercontent.com/TwistedSlayerHelm/Images/refs/heads/main/maps/fsQF2NF.png', [0, 5831], 'Civitasv1.png');
+  ScriptWalker^.AddRegionFromURL('https://raw.githubusercontent.com/TwistedSlayerHelm/Images/refs/heads/main/maps/fsQF2NF.png', [0, 5831], 'FarmRunnerCivitas.png');
 
   BoatyShore.SetupCoordinates([[9294,1075]]);
   BoatyShore.SetupUpText(['ravel']);
