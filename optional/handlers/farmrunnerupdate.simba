@@ -523,7 +523,7 @@ begin
     EPatchType.HERB,
     CTS2(3497831, 6, 0.08, 0.22),
     [[402,6252,406,6256]],
-    [412, 6264],
+    [450, 6232],
     CTS2(2188082, 10, 0.10, 1.20),
     'Civitas herb',
     [0, 5831, 1452, 6682]
@@ -533,7 +533,7 @@ begin
     EPatchType.FLOWER,
     CTS2(3497831, 6, 0.08, 0.22),
     [[418,6234,422,6238]],
-    [412, 6264],
+    [450, 6232],
     CTS2(2188082, 10, 0.10, 1.20),
     'Civitas flower',
     [0, 5831, 1452, 6682]
@@ -543,7 +543,7 @@ begin
     EPatchType.ALLOTMENT,
     CTS2(3497831, 6, 0.08, 0.22),
     [[402,6218,408,6238], [410,6218,418,6222]],
-    [412, 6264],
+    [450, 6232],
     CTS2(2188082, 10, 0.10, 1.20),
     'Civitas north allotment',
     [0, 5831, 1452, 6682]
@@ -553,7 +553,7 @@ begin
     EPatchType.ALLOTMENT,
     CTS2(3497831, 6, 0.08, 0.22),
     [[418,6252,438,6256], [434,6246,438,6238]],
-    [412, 6264],
+    [450, 6232],
     CTS2(2188082, 10, 0.10, 1.20),
     'Civitas south allotment',
     [0, 5831, 1452, 6682]
@@ -1308,7 +1308,7 @@ procedure TFarmRun.OnStart(); begin
   if Self.StrongholdHerbPatch and not Self.HerbSeedEmpty then
     Self.FarmWithdrawHelper('Stony basalt', 1);
 
-  if (Self.ArdyHerbPatch and not Self.HerbSeedEmpty) or (Self.ArdyFlowerPatch and not Self.FlowerSeedEmpty) or (Self.ArdyAllotmentPatches and not Self.AllotmentSeedEmpty) and (not Self.ArdyCloakEquipped) and Self.ArdougneTP.Contains('cape') then
+  if (Self.ArdyHerbPatch and not Self.HerbSeedEmpty) or (Self.ArdyFlowerPatch and not Self.FlowerSeedEmpty) or (Self.ArdyAllotmentPatches and not Self.AllotmentSeedEmpty) and (not Self.ArdyCloakEquipped) and (Self.ArdyDiary <> 0) then
     Self.FarmWithdrawHelper(Self.ArdyCloak, 1);
 
   if (Self.FallyHerbPatch and not Self.HerbSeedEmpty) or (Self.FallyFlowerPatch and not Self.FlowerSeedEmpty) or (Self.FallyAllotmentPatches and not Self.AllotmentSeedEmpty) then
@@ -2709,6 +2709,8 @@ begin
         end
         else
           Equipment.ClickItem(item, 'Hunter Guild');
+        WaitUntil(Minimap.PercentBlack < 25, 115, 3500);
+        ScriptWalker^.WalkPath([[330,6444], [370,6436], [402,6428], [410,6372]]);
       end;
   end;
 
@@ -2818,7 +2820,7 @@ begin
   if Self.StrongholdHerbPatch then
     Self.StrongholdDiary := Achievements.GetDiaryLevel(ERSAchievementDiary.FREMENNIK);
 
-  if (Self.ArdyHerbPatch or Self.ArdyFlowerPatch or Self.ArdyWhiteberryPatch or Self.ArdyAllotmentPatches) and Self.ArdougneTP.Contains('cape') then
+  if (Self.ArdyHerbPatch or Self.ArdyFlowerPatch or Self.ArdyWhiteberryPatch or Self.ArdyAllotmentPatches) and (Self.ArdyDiary <> 0) then
     Self.ArdyDiary := Achievements.GetDiaryLevel(ERSAchievementDiary.ARDOUGNE);
 
   if (Self.FallyHerbPatch or Self.FallyFlowerPatch or Self.FallyAllotmentPatches) and Self.FaladorTP.Contains('ring') then
