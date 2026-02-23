@@ -218,9 +218,12 @@ type
     InfiniteWater,
     InfiniteEarth,
     InfiniteFire,
-    DoCleanHerbs        : Boolean;
-    TUTransport: TUniversalTransport;
-    RunesInPouch : TStringArray;
+    DoCleanHerbs,
+    HerbSeedEmpty,
+    FlowerSeedEmpty,
+    AllotmentSeedEmpty              : Boolean;
+    TUTransport                     : TUniversalTransport;
+    RunesInPouch                    : TStringArray;
   end;
 
   TIniFConfig = record
@@ -1299,145 +1302,158 @@ procedure TFarmRun.OnStart(); begin
   if Self.MagicSecs then
     Self.FarmWithdrawHelper('Magic secateurs', 1);
 
-  if Self.WeissHerbPatch then
+  if Self.WeissHerbPatch and not Self.HerbSeedEmpty then
     Self.FarmWithdrawHelper('Icy basalt', 1);
 
-  if Self.StrongholdHerbPatch then
+  if Self.StrongholdHerbPatch and not Self.HerbSeedEmpty then
     Self.FarmWithdrawHelper('Stony basalt', 1);
 
-  if (Self.ArdyHerbPatch or Self.ArdyFlowerPatch or Self.ArdyWhiteberryPatch or Self.ArdyAllotmentPatches) and (not Self.ArdyCloakEquipped) and Self.ArdougneTP.Contains('cape') then
+  if (Self.ArdyHerbPatch and not Self.HerbSeedEmpty) or (Self.ArdyFlowerPatch and not Self.FlowerSeedEmpty) or (Self.ArdyAllotmentPatches and not Self.AllotmentSeedEmpty) and (not Self.ArdyCloakEquipped) and Self.ArdougneTP.Contains('cape') then
     Self.FarmWithdrawHelper(Self.ArdyCloak, 1);
 
-  case Self.FaladorTP of
-  'Normal spellbook TELEPORT':
+  if (Self.FallyHerbPatch and not Self.HerbSeedEmpty) or (Self.FallyFlowerPatch and not Self.FlowerSeedEmpty) or (Self.FallyAllotmentPatches and not Self.AllotmentSeedEmpty) then
   begin
-    if not Self.InfiniteAir then
-      Self.FarmWithdrawHelper('Air rune', -1);
+    case Self.FaladorTP of
+    'Normal spellbook TELEPORT':
+    begin
+      if not Self.InfiniteAir then
+        Self.FarmWithdrawHelper('Air rune', -1);
 
-    if not (Self.RunesInPouch.ContainsAny(['law']) and Self.RPouchMethod.Contains('pouch')) then
-      Self.FarmWithdrawHelper('Law rune', -1);
+      if not (Self.RunesInPouch.ContainsAny(['law']) and Self.RPouchMethod.Contains('pouch')) then
+        Self.FarmWithdrawHelper('Law rune', -1);
 
-    if not Self.InfiniteWater then
-      Self.FarmWithdrawHelper('Water rune', -1);
-  end;
+      if not Self.InfiniteWater then
+        Self.FarmWithdrawHelper('Water rune', -1);
+    end;
 
-  'Falador TABLET':
+    'Falador TABLET':
     Self.FarmWithdrawHelper('Falador teleport', 1);
 
-  'Explorer ring':
+    'Explorer ring':
+    begin
+      if not Self.LumbyRingEquipped then
+        Self.FarmWithdrawHelper(Self.LumbyRing, 1);
+    end;
+    end;
+  end;
+
+  if (Self.CatherbyHerbPatch and not Self.HerbSeedEmpty) or (Self.CatherbyFlowerPatch and not Self.FlowerSeedEmpty) or (Self.CatherbyAllotmentPatches and not Self.AllotmentSeedEmpty) then
   begin
-    if not Self.LumbyRingEquipped then
-      Self.FarmWithdrawHelper(Self.LumbyRing, 1);
-  end;
-  end;
+    case Self.CatherbyTP of
+    'Lunar spellbook TELEPORT':
+    begin
+      if not Self.RunesInPouch.ContainsAny(['law']) and Self.RPouchMethod.Contains('pouch') then
+        Self.FarmWithdrawHelper('Law rune', 3);
 
-  case Self.CatherbyTP of
-  'Lunar spellbook TELEPORT':
-  begin
-    if not Self.RunesInPouch.ContainsAny(['law']) and Self.RPouchMethod.Contains('pouch') then
-      Self.FarmWithdrawHelper('Law rune', 3);
+      if not Self.InfiniteWater then
+        Self.FarmWithdrawHelper('Water rune', 10);
+    end;
 
-    if not Self.InfiniteWater then
-      Self.FarmWithdrawHelper('Water rune', 10);
-  end;
+    'Camelot TABLET':
+      Self.FarmWithdrawHelper('Camelot teleport', 1);
 
-  'Camelot TABLET':
-    Self.FarmWithdrawHelper('Camelot teleport', 1);
+    'Catherby TABLET':
+      Self.FarmWithdrawHelper('Catherby teleport', 1);
 
-  'Catherby TABLET':
-     Self.FarmWithdrawHelper('Catherby teleport', 1);
+    'Normal spellbook TELEPORT':
+    begin
+      if not Self.InfiniteAir then
+        Self.FarmWithdrawHelper('Air rune', -1);
 
-  'Normal spellbook TELEPORT':
-  begin
-    if not Self.InfiniteAir then
-      Self.FarmWithdrawHelper('Air rune', -1);
-
-    if not (Self.RunesInPouch.ContainsAny(['law']) and Self.RPouchMethod.Contains('pouch')) then
-      Self.FarmWithdrawHelper('Law rune', -1);
-  end;
+      if not (Self.RunesInPouch.ContainsAny(['law']) and Self.RPouchMethod.Contains('pouch')) then
+        Self.FarmWithdrawHelper('Law rune', -1);
+    end;
+    end
   end;
 
-  if Self.PhasmatysHerbPatch then
+  if Self.PhasmatysHerbPatch and not Self.HerbSeedEmpty then
     Self.FarmWithdrawHelper('Ectophial', 1);
 
-   case Self.HosidiusTP of
-  'Xerics Talisman (CHARGED)':
+  if (Self.HosidiusHerbPatch and not Self.HerbSeedEmpty) or (Self.HosidiusFlowerPatch and not Self.FlowerSeedEmpty) or (Self.HosidiusAllotmentPatches and not Self.AllotmentSeedEmpty) then
   begin
-    if (not Self.XericTaliEquipped) then
-      Self.FarmWithdrawHelper('Xeric''s talisman', 1);
+    case Self.HosidiusTP of
+    'Xerics Talisman (CHARGED)':
+    begin
+      if not Self.XericTaliEquipped then
+        Self.FarmWithdrawHelper('Xeric''s talisman', 1);
+    end;
+
+    'Hosidius TABLET':
+      Self.FarmWithdrawHelper('Hosidius teleport', 1);
+
+    'House teleport TABLET':
+      Self.FarmWithdrawHelper('Teleport to house', 1);
+
+    'House teleport RUNES':
+    begin
+      if not Self.InfiniteEarth then
+        Self.FarmWithdrawHelper('Earth rune', -1);
+
+      if not (Self.RunesInPouch.ContainsAny(['law']) and Self.RPouchMethod.Contains('pouch')) then
+        Self.FarmWithdrawHelper('Law rune', -1);
+
+      if not Self.InfiniteAir then
+        Self.FarmWithdrawHelper('Air rune', -1);
+    end;
+
+    'Construction cape UNTRIMMED':
+    begin
+      if not Self.ConstructionCapeEquipped then
+        Self.FarmWithdrawHelper('Construct. cape', 1);
+    end;
+
+    'Construction cape TRIMMED':
+    begin
+      if not Self.ConstructionCapeEquipped then
+        Self.FarmWithdrawHelper('Construct. cape', 1);
+    end;
+    end;
   end;
 
-  'Hosidius TABLET':
-    Self.FarmWithdrawHelper('Hosidius teleport', 1);
 
-  'House teleport TABLET':
-    Self.FarmWithdrawHelper('Teleport to house', 1);
-
-  'House teleport RUNES':
+  if (Self.CivitasHerbPatch and not Self.HerbSeedEmpty) or (Self.CivitasFlowerPatch and not Self.FlowerSeedEmpty) or (Self.CivitasAllotmentPatches and not Self.AllotmentSeedEmpty) then
   begin
-    if not Self.InfiniteEarth then
-      Self.FarmWithdrawHelper('Earth rune', -1);
+    case Self.CivitasTP of
+    'Normal spellbook TELEPORT':
+    begin
+      if not Self.InfiniteFire then
+        Self.FarmWithdrawHelper('Fire rune', -1);
 
-    if not (Self.RunesInPouch.ContainsAny(['law']) and Self.RPouchMethod.Contains('pouch')) then
-      Self.FarmWithdrawHelper('Law rune', -1);
+      if not (Self.RunesInPouch.ContainsAny(['law']) and Self.RPouchMethod.Contains('pouch')) then
+        Self.FarmWithdrawHelper('Law rune', -1);
 
-    if not Self.InfiniteAir then
-      Self.FarmWithdrawHelper('Air rune', -1);
-  end;
+      if not Self.InfiniteEarth then
+        Self.FarmWithdrawHelper('Earth rune', -1);
+    end;
 
-  'Construction cape UNTRIMMED':
-  begin
-    if not Self.ConstructionCapeEquipped then
-      Self.FarmWithdrawHelper('Construct. cape', 1);
-  end;
+    'Civitas TABLET':
+      Self.FarmWithdrawHelper('Civitas illa fortis teleport', 1);
 
-  'Construction cape TRIMMED':
-  begin
-  if not Self.ConstructionCapeEquipped then
-      Self.FarmWithdrawHelper('Construct. cape(t)', 1);
-  end;
-  end;
+    'Hunter cape UNTRIMMED':
+    begin
+      if not Self.HunterCapeEquipped then
+        Self.FarmWithdrawHelper('Hunter cape', 1);
+    end;
 
-  case Self.CivitasTP of
-  'Normal spellbook TELEPORT':
-  begin
-    if not Self.InfiniteFire then
-      Self.FarmWithdrawHelper('Fire rune', -1);
+    'Hunter cape TRIMMED':
+    begin
+      if not Self.HunterCapeEquipped then
+        Self.FarmWithdrawHelper('Hunter cape(t)', 1);
+    end;
 
-    if not (Self.RunesInPouch.ContainsAny(['law']) and Self.RPouchMethod.Contains('pouch')) then
-      Self.FarmWithdrawHelper('Law rune', -1);
+    'Basic quetzal whistle':
+      Self.FarmWithdrawHelper('Basic quetzal whistle', 1);
 
-    if not Self.InfiniteEarth then
-      Self.FarmWithdrawHelper('Earth rune', -1);
-  end;
+    'Enhanced quetzal whistle':
+      Self.FarmWithdrawHelper('Enhanced quetzal whistle', 1);
 
-  'Civitas TABLET':
-    Self.FarmWithdrawHelper('Civitas illa fortis teleport', 1);
-
-  'Hunter cape UNTRIMMED':
-  begin
-    if not Self.HunterCapeEquipped then
-      Self.FarmWithdrawHelper('Hunter cape', 1);
-  end;
-
-  'Hunter cape TRIMMED':
-  begin
-    if not Self.HunterCapeEquipped then
-      Self.FarmWithdrawHelper('Hunter cape(t)', 1);
-  end;
-
-  'Basic quetzal whistle':
-    Self.FarmWithdrawHelper('Basic quetzal whistle', 1);
-
-  'Enhanced quetzal whistle':
-    Self.FarmWithdrawHelper('Enhanced quetzal whistle', 1);
-
-  'Perfected quetzal whistle':
-    Self.FarmWithdrawHelper('Perfected quetzal whistle', 1);
+    'Perfected quetzal whistle':
+      Self.FarmWithdrawHelper('Perfected quetzal whistle', 1);
+    end;
   end;
 
 
-  if Self.GuildHerbPatch or Self.GuildFlowerPatch or Self.GuildWhiteberryPatch or Self.GuildCactus or Self.GuildAllotmentPatches then
+  if (Self.GuildHerbPatch and not Self.HerbSeedEmpty) or (Self.GuildFlowerPatch and not Self.FlowerSeedEmpty) or (Self.GuildAllotmentPatches and not Self.AllotmentSeedEmpty) or Self.GuildWhiteberryPatch or Self.GuildCactus then
   begin
     case Self.FarmguildTP of
     'Farming cape UNTRIMMED':
@@ -1490,40 +1506,50 @@ procedure TFarmRun.OnStart(); begin
     Self.FarmWithdrawHelper('Volcanic ash', 44);
   end;
 
-  case Self.HerbSeedType of
-  'Guam seed',
-  'Marrentill seed',
-  'Tarromin seed',
-  'Harralander seed',
-  'Ranarr seed',
-  'Toadflax seed',
-  'Irit seed',
-  'Avantoe seed',
-  'Kwuarm seed',
-  'Snapdragon seed',
-  'Cadantine seed',
-  'Lantadyme seed',
-  'Dwarf weed seed',
-  'Torstol seed',
-  'Huasca seed':
-    Self.FarmWithdrawHelper(Self.HerbSeedType, -1);
+
+  if Self.WeissHerbPatch or Self.StrongholdHerbPatch or Self.ArdyHerbPatch or Self.FallyHerbPatch or Self.CatherbyHerbpatch or Self.PhasmatysHerbPatch or Self.HosidiusHerbPatch or Self.CivitasHerbPatch or Self.GuildHerbPatch then
+  begin
+    case Self.HerbSeedType of
+    'Guam seed',
+    'Marrentill seed',
+    'Tarromin seed',
+    'Harralander seed',
+    'Ranarr seed',
+    'Toadflax seed',
+    'Irit seed',
+    'Avantoe seed',
+    'Kwuarm seed',
+    'Snapdragon seed',
+    'Cadantine seed',
+    'Lantadyme seed',
+    'Dwarf weed seed',
+    'Torstol seed',
+    'Huasca seed':
+      Self.FarmWithdrawHelper(Self.HerbSeedType, -1);
+    end;
   end;
 
-  case Self.FlowerSeedType of
-  'Limpwurt seed':
-    Self.FarmWithdrawHelper(Self.FlowerSeedType, -1);
+  if Self.ArdyFlowerPatch or Self.FallyFlowerPatch or Self.CatherbyFlowerPatch or Self.PhasmatysFlowerPatch or Self.HosidiusFlowerPatch or Self.CivitasFlowerPatch or Self.GuildFlowerPatch then
+  begin
+    case Self.FlowerSeedType of
+    'Limpwurt seed':
+      Self.FarmWithdrawHelper(Self.FlowerSeedType, -1);
+    end;
   end;
 
-  case Self.AllotSeedType of
-  'Potato seed',
-  'Onion seed',
-  'Cabbage seed',
-  'Tomato seed',
-  'Sweetcorn seed',
-  'Strawberry seed',
-  'Watermelon seed',
-  'Snape grass seed':
-    Self.FarmWithdrawHelper(Self.AllotSeedType, -1);
+  if Self.ArdyAllotmentPatches or Self.FallyAllotmentPatches or Self.CatherbyAllotmentPatches or Self.PhasmatysAllotmentPatches or Self.HosidiusAllotmentPatches or Self.CivitasAllotmentPatches or Self.GuildAllotmentPatches then
+  begin
+    case Self.AllotSeedType of
+    'Potato seed',
+    'Onion seed',
+    'Cabbage seed',
+    'Tomato seed',
+    'Sweetcorn seed',
+    'Strawberry seed',
+    'Watermelon seed',
+    'Snape grass seed':
+      Self.FarmWithdrawHelper(Self.AllotSeedType, -1);
+    end;
   end;
 
   if Self.GiantSeaweedpatches then
@@ -2162,6 +2188,7 @@ begin
       Self.WriteMsg('Failed to find correct patch uptext or choose option while planting.');
       Inventory.SetSelectedSlot(-1);
       Antiban.RandomMouse;
+      Antiban.RandomRotate();
       Wait(142, 379);
       Exit;
     end;
@@ -2906,13 +2933,20 @@ begin
     FarmRunner.CompostMethod := ECompostMethod.FERTILE_SOIL
   else FarmRunner.CompostMethod := ECompostMethod.REGULAR;
 
-  if Self.WeissHerbPatch then
+  if Self.HerbSeedType = '' then
+    HerbSeedEmpty := True;
+  if Self.FlowerSeedType = '' then
+    FlowerSeedEmpty := True;
+  if Self.AllotSeedType = '' then
+    AllotmentSeedEmpty := True;
+
+  if Self.WeissHerbPatch and not HerbSeedEmpty then
     Self.AddPatch(EFarmPatch.WEISS_HERB, ETravelMethod.ICY_BASALT, Self.HerbSeedType);
 
-  if Self.StrongholdHerbPatch then
+  if Self.StrongholdHerbPatch and not HerbSeedEmpty then
     Self.AddPatch(EFarmpatch.STRONGHOLD_HERB, ETravelMethod.STONY_BASALT, Self.HerbSeedType);
 
-  if Self.ArdyHerbPatch then
+  if Self.ArdyHerbPatch and not HerbSeedEmpty then
   begin
     case Self.ArdougneTP of
     'Not using Ardougne patch':
@@ -2930,7 +2964,7 @@ begin
     end;
   end;
 
-  if Self.ArdyFlowerPatch then
+  if Self.ArdyFlowerPatch and not FlowerSeedEmpty then
   begin
     case Self.ArdougneTP of
     'Not using Ardougne patch':
@@ -2948,7 +2982,7 @@ begin
     end;
   end;
 
-  if Self.ArdyAllotmentPatches then
+  if Self.ArdyAllotmentPatches and not AllotmentSeedEmpty then
   begin
     case Self.ArdougneTP of
     'Not using Ardougne patch':
@@ -2973,7 +3007,7 @@ begin
     end;
   end;
 
-  if Self.FallyHerbPatch then
+  if Self.FallyHerbPatch and not HerbSeedEmpty then
   begin
     case Self.FaladorTP of
     'Not using Falador patch':
@@ -2991,7 +3025,7 @@ begin
     end;
   end;
 
-  if Self.FallyFlowerPatch then
+  if Self.FallyFlowerPatch and not FlowerSeedEmpty then
   begin
     case Self.FaladorTP of
     'Not using Falador patch':
@@ -3009,7 +3043,7 @@ begin
     end;
   end;
 
-  if Self.FallyAllotmentPatches then
+  if Self.FallyAllotmentPatches and not AllotmentSeedEmpty then
   begin
     case Self.FaladorTP of
     'Not using Falador patch':
@@ -3034,7 +3068,7 @@ begin
     end;
   end;
 
-  if Self.CatherbyHerbpatch then
+  if Self.CatherbyHerbpatch and not HerbSeedEmpty then
   begin
     case Self.CatherbyTP of
     'Normal spellbook TELEPORT':
@@ -3051,7 +3085,7 @@ begin
     end;
   end;
 
-  if Self.CatherbyFlowerPatch then
+  if Self.CatherbyFlowerPatch and not FlowerSeedEmpty then
   begin
     case Self.CatherbyTP of
     'Normal spellbook TELEPORT':
@@ -3068,7 +3102,7 @@ begin
     end;
   end;
 
-  if Self.CatherbyAllotmentpatches then
+  if Self.CatherbyAllotmentpatches and not AllotmentSeedEmpty then
   begin
     case Self.CatherbyTP of
     'Normal spellbook TELEPORT':
@@ -3094,19 +3128,19 @@ begin
     end;
   end;
 
-  if Self.PhasmatysHerbPatch then
+  if Self.PhasmatysHerbPatch and not HerbSeedEmpty then
     Self.AddPatch(EFarmPatch.PHASMATYS_HERB, ETravelMethod.ECTOPHIAL, Self.HerbSeedType);
 
-  if Self.PhasmatysFlowerPatch then
+  if Self.PhasmatysFlowerPatch and not FlowerSeedEmpty then
     Self.AddPatch(EFarmPatch.PHASMATYS_FLOWER, ETravelMethod.ECTOPHIAL, Self.FlowerSeedType);
 
-  if Self.PhasmatysAllotmentPatches then
+  if Self.PhasmatysAllotmentPatches and not AllotmentSeedEmpty then
   begin
     Self.AddPatch(EFarmPatch.PHASMATYS_ALLOT_N, ETravelMethod.ECTOPHIAL, Self.AllotSeedType);
     Self.AddPatch(EFarmPatch.PHASMATYS_ALLOT_S, ETravelMethod.ECTOPHIAL, Self.AllotSeedType);
   end;
 
-  if Self.HosidiusHerbPatch then
+  if Self.HosidiusHerbPatch and not HerbSeedEmpty then
   begin
     case Self.HosidiusTP of
     'Xerics Talisman (CHARGED)':
@@ -3123,7 +3157,7 @@ begin
     end;
   end;
 
-  if Self.HosidiusFlowerPatch then
+  if Self.HosidiusFlowerPatch and not FlowerSeedEmpty then
   begin
     case Self.HosidiusTP of
     'Xerics Talisman (CHARGED)':
@@ -3140,7 +3174,7 @@ begin
     end;
   end;
 
-  if Self.HosidiusAllotmentPatches then
+  if Self.HosidiusAllotmentPatches and not AllotmentSeedEmpty then
   begin
     case Self.HosidiusTP of
     'Xerics Talisman (CHARGED)':
@@ -3169,7 +3203,7 @@ begin
     end;
   end;
 
-  if Self.CivitasHerbPatch then
+  if Self.CivitasHerbPatch and not HerbSeedEmpty then
   begin
     case Self.CivitasTP of
     'Not using Civitas Patch':
@@ -3193,7 +3227,7 @@ begin
     end;
   end;
 
-  if Self.CivitasFlowerPatch then
+  if Self.CivitasFlowerPatch and not FlowerSeedEmpty then
   begin
     case Self.CivitasTP of
     'Not using Civitas Patch':
@@ -3217,7 +3251,7 @@ begin
     end;
   end;
 
-  if Self.CivitasAllotmentPatches then
+  if Self.CivitasAllotmentPatches and not AllotmentSeedEmpty then
   begin
     case Self.CivitasTP of
     'Not using Civitas Patch':
@@ -3250,7 +3284,7 @@ begin
     end;
   end;
 
-  if Self.GuildHerbPatch then
+  if Self.GuildHerbPatch and not HerbSeedEmpty then
   begin
     case Self.FarmguildTP of
     'Farming cape UNTRIMMED', 'Farming cape TRIMMED':
@@ -3264,7 +3298,7 @@ begin
     end;
   end;
 
-  if Self.GuildFlowerPatch then
+  if Self.GuildFlowerPatch and not FlowerSeedEmpty then
   begin
     case Self.FarmguildTP of
     'Farming cape UNTRIMMED', 'Farming cape TRIMMED':
@@ -3292,7 +3326,7 @@ begin
     end;
   end;
 
-  if Self.GuildAllotmentPatches then
+  if Self.GuildAllotmentPatches and not AllotmentSeedEmpty then
   begin
     case Self.FarmguildTP of
     'Farming cape UNTRIMMED', 'Farming cape TRIMMED':
