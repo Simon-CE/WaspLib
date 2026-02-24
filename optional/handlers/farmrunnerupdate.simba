@@ -552,7 +552,7 @@ begin
   PatchData[EFarmPatch.CIVITAS_ALLOT_S] := [
     EPatchType.ALLOTMENT,
     CTS2(3497831, 6, 0.08, 0.22),
-    [[418,6252,438,6256], [434,6246,438,6238]],
+    [[420,6250,432,6254], [434,6244,438,6236]],
     [450, 6232],
     CTS2(2188082, 10, 0.10, 1.20),
     'Civitas south allotment',
@@ -1050,8 +1050,10 @@ begin
   soil := soil.Difference(soil.FilterBox(XPBar.Bounds));
   if soil.Len() < 5 then
     Exit;
-  //Self.ClickBox := Box(tiles[0].NearestEdge(Self.SearchBox.Center), 2, 2);
-  Self.ClickBox := Box(tiles[0].Mean, 3, 3);
+  if Self.Data.Name.Contains('Civitas') then
+    Self.ClickBox := Box(tiles[0].NearestEdge(Self.SearchBox.Center), 2, 2)
+  else
+    Self.ClickBox := Box(tiles[0].Mean, 3, 3);
   Result := True;
 end;
 
@@ -1155,6 +1157,11 @@ begin
     case attempts of
       0, 2: begin
               if not ScriptWalker^.MakePointVisible(Self.Data.LeprechaunCoords) then begin
+                if Self.Data.Name.Contains('Civitas') then begin
+                  ScriptWalker^.WalkBlind([Self.Data.LeprechaunCoords.X + 4, Self.Data.LeprechaunCoords.Y + 4]);
+                  ScriptWalker^.MakePointVisible(Self.Data.LeprechaunCoords);
+                end
+                else
                 ScriptWalker^.WebWalk([Self.Data.LeprechaunCoords.X + 4, Self.Data.LeprechaunCoords.Y + 4]);
                 ScriptWalker^.MakePointVisible(Self.Data.LeprechaunCoords);
               end
@@ -1308,7 +1315,7 @@ procedure TFarmRun.OnStart(); begin
   if Self.StrongholdHerbPatch and not Self.HerbSeedEmpty then
     Self.FarmWithdrawHelper('Stony basalt', 1);
 
-  if (Self.ArdyHerbPatch and not Self.HerbSeedEmpty) or (Self.ArdyFlowerPatch and not Self.FlowerSeedEmpty) or (Self.ArdyAllotmentPatches and not Self.AllotmentSeedEmpty) and (not Self.ArdyCloakEquipped) and (Self.ArdyDiary <> 0) then
+  if ((Self.ArdyHerbPatch and not Self.HerbSeedEmpty) or (Self.ArdyFlowerPatch and not Self.FlowerSeedEmpty) or (Self.ArdyAllotmentPatches and not Self.AllotmentSeedEmpty)) and (not Self.ArdyCloakEquipped) and Self.ArdougneTP.Contains('cape') then
     Self.FarmWithdrawHelper(Self.ArdyCloak, 1);
 
   if (Self.FallyHerbPatch and not Self.HerbSeedEmpty) or (Self.FallyFlowerPatch and not Self.FlowerSeedEmpty) or (Self.FallyAllotmentPatches and not Self.AllotmentSeedEmpty) then
@@ -1733,6 +1740,8 @@ begin
   for i := 0 to High(slots) do begin
     RSInterface.Close();
 
+    if not Self.CurrentPatch.FindLeprechaun(lepPT) then
+
     if ScriptWalker^.GetMyPos = Self.CurrentPatch.Data.LeprechaunCoords then begin
       playerBox := Mainscreen.GetPlayerBox;
       playerBox.Y1 := playerBox.Y1 - Floor(playerBox.Height / 2);
@@ -2039,21 +2048,10 @@ begin
     Exit;
   end;
 
-  if not Inventory.FindItem(compostItem, slot) then begin
-    WithdrawCompost;
-
-    if not Inventory.FindItem(compostItem, slot) then begin
-      Self.WriteMsg('Failed to find compost after withdrawing.');
-      Exit;
-    end;
-  end;
+  if not Inventory.FindItem(compostItem, slot) then
+    Self.WithdrawCompost;
 
   Self.WriteMsg('Composting at ' + Self.CurrentPatch.Data.Name + ' patch.');
-
-  if not Inventory.SetSelectedSlot(-1) then begin
-    Self.WriteMsg('Failed to unselect item before searching for compost');
-    Exit;
-  end;
 
   if (Self.CompostMethod = ECompostMethod.FERTILE_SOIL) then begin
     if not WaitUntil((Magic.GetSpellBook = ERSSpellBook.LUNAR), 1200, 2*ONE_MINUTE) then
@@ -2152,6 +2150,8 @@ end;
 
 procedure TFarmRun.Plant();
 var
+  compostArray    : TStringArray := ['Compost', 'Supercompost', 'Ultracompost', 'Bottomless compost bucket', '', ''];
+  compostItem     : TRSItem := compostArray[Self.CompostMethod];
   slot, attempts, seedCount  : Int32;
 begin
   if not RSClient.IsLoggedIn then
@@ -2164,6 +2164,9 @@ begin
     Self.CurrentPatch.Skip := True;
     Exit;
   end;
+
+  if (Self.CurrentPatch.Data.PatchType <> EPatchType.FLOWER) and not Inventory.ContainsItem(compostItem) then
+    Self.WithdrawCompost();
 
   seedCount := (Inventory.CountItemStack(Self.CurrentPatch.Seed));
   Self.WriteMsg('Our seed count is ' + ToStr(seedCount));
@@ -2252,6 +2255,8 @@ begin
     else
       Self.CurrentPatch.Complete := True;
   end;
+
+  Wait(748, 1153);
 end;
 
 procedure TFarmRun.HarvestWait();
@@ -2820,7 +2825,7 @@ begin
   if Self.StrongholdHerbPatch then
     Self.StrongholdDiary := Achievements.GetDiaryLevel(ERSAchievementDiary.FREMENNIK);
 
-  if (Self.ArdyHerbPatch or Self.ArdyFlowerPatch or Self.ArdyWhiteberryPatch or Self.ArdyAllotmentPatches) and (Self.ArdyDiary <> 0) then
+  if ((Self.ArdyHerbPatch and not Self.HerbSeedEmpty) or (Self.ArdyFlowerPatch and not Self.FlowerSeedEmpty) or (Self.ArdyAllotmentPatches and not Self.AllotmentSeedEmpty)) and (not Self.ArdyCloakEquipped) and Self.ArdougneTP.Contains('cape') then
     Self.ArdyDiary := Achievements.GetDiaryLevel(ERSAchievementDiary.ARDOUGNE);
 
   if (Self.FallyHerbPatch or Self.FallyFlowerPatch or Self.FallyAllotmentPatches) and Self.FaladorTP.Contains('ring') then
@@ -2834,7 +2839,7 @@ begin
     Self.WriteMsg('Stronghold diary ' + ToStr(StrongholdDiary));
   end;
 
-  if (Self.ArdyHerbPatch or Self.ArdyFlowerPatch or Self.ArdyWhiteberryPatch or Self.ArdyAllotmentPatches) and Self.ArdougneTP.Contains('cape') then
+  if ((Self.ArdyHerbPatch and not Self.HerbSeedEmpty) or (Self.ArdyFlowerPatch and not Self.FlowerSeedEmpty) or (Self.ArdyAllotmentPatches and not Self.AllotmentSeedEmpty)) and Self.ArdougneTP.Contains('cape') then
   begin
     if (Self.ArdyDiary = 0) then
       TerminateScript('Ardougne herb and flower patch require Ardy cloak 2 or higher. Kandarin bush patch requires Ardy cloak 1 or higher');
