@@ -642,7 +642,7 @@ begin
   PatchData[EFarmPatch.GIANT_SEAWEED_SOUTH] := [
     EPatchType.SEAWEED,
     CTS2(5926241, 4, 0.92, 0.38),
-    [[1280, 5640, 1284, 5644]],
+    [[1280, 5638, 1284, 5642]],
     [1276, 5630],
     CTS2(6189902, 6, 0.52, 0.52),
     'Giant seaweed south',
@@ -1050,7 +1050,7 @@ begin
   soil := soil.Difference(soil.FilterBox(XPBar.Bounds));
   if soil.Len() < 5 then
     Exit;
-  if Self.Data.Name.Contains('Civitas') then
+  if Self.Data.PatchType <> EPatchType.ALLOTMENT then
     Self.ClickBox := Box(tiles[0].NearestEdge(Self.SearchBox.Center), 2, 2)
   else
     Self.ClickBox := Box(tiles[0].Mean, 3, 3);
@@ -1662,6 +1662,7 @@ begin
           Chat.ClickContinue(True);
           WaitUntil((not Chat.FindOption('airin', [CHAT_COLOR_BLACK])), 15, 5000);
         end;
+        WaitUntil((MyPos := ScriptWalker^.GetMyPos).InBox([1129, 5407, 1769, 5824]), 15, 5000);
       end else begin
         try
           if BoatyIsland.WalkSelectOption(['Dive'], 10) then
