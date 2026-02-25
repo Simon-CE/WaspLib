@@ -1,45 +1,45 @@
-## [20.3.24](https://github.com/Torwent/WaspLib/compare/v20.3.23...v20.3.24) (2026-02-10)
+## [20.3.42](https://github.com/Torwent/WaspLib/compare/v20.3.41...v20.3.42) (2026-02-25)
 
 
 ### Bug Fixes
 
-* waspweb.graph revert for now ([f312cf7](https://github.com/Torwent/WaspLib/commit/f312cf739f51471f22f35643301938457d2723ff))
+* Update farmrunnerupdate.simba ([bc9b153](https://github.com/Torwent/WaspLib/commit/bc9b1532a9ffe05ab5be91689e65d067e37f98af))
 
 
 
-## [20.3.23](https://github.com/Torwent/WaspLib/compare/v20.3.22...v20.3.23) (2026-02-10)
-
-
-### Bug Fixes
-
-* waspweb.graph ([2508055](https://github.com/Torwent/WaspLib/commit/250805543b4eb91740c54bbe9e9efe99b029bb12))
-
-
-
-## [20.3.22](https://github.com/Torwent/WaspLib/compare/v20.3.21...v20.3.22) (2026-01-28)
+## [20.3.41](https://github.com/Torwent/WaspLib/compare/v20.3.40...v20.3.41) (2026-02-25)
 
 
 ### Bug Fixes
 
-* **bank:** compatibility with latest srlt ([2276351](https://github.com/Torwent/WaspLib/commit/2276351f94c64ad88b2bb2bc561f9d36c138d46d))
+* Update farmrunnerupdate.simba ([d5bc586](https://github.com/Torwent/WaspLib/commit/d5bc586ea02d742e755391fb19c8fde92a5a9180))
 
 
 
-## [20.3.21](https://github.com/Torwent/WaspLib/compare/v20.3.20...v20.3.21) (2026-01-14)
-
-
-### Bug Fixes
-
-* **TBaseBankScript:** remove unneeded out parameter ([8330086](https://github.com/Torwent/WaspLib/commit/83300868d063541452974c3fac7e917ecfa5c0ec))
-
-
-
-## [20.3.20](https://github.com/Torwent/WaspLib/compare/v20.3.19...v20.3.20) (2026-01-09)
+## [20.3.40](https://github.com/Torwent/WaspLib/compare/v20.3.39...v20.3.40) (2026-02-25)
 
 
 ### Bug Fixes
 
-* Update README.md ([bd59a74](https://github.com/Torwent/WaspLib/commit/bd59a74b34c85b4ce0d2672fa9b4673e1bd53a09))
+* Update farmrunnerupdate.simba ([b202c87](https://github.com/Torwent/WaspLib/commit/b202c872759f0dc2aaf38f377f80d3ae91a14663))
+
+
+
+## [20.3.39](https://github.com/Torwent/WaspLib/compare/v20.3.38...v20.3.39) (2026-02-25)
+
+
+### Bug Fixes
+
+* Update farmrunnerupdate.simba ([3216e3c](https://github.com/Torwent/WaspLib/commit/3216e3c0c8cb80349e57399ac93ad1eb2ac19ae1))
+
+
+
+## [20.3.38](https://github.com/Torwent/WaspLib/compare/v20.3.37...v20.3.38) (2026-02-25)
+
+
+### Bug Fixes
+
+* Update farmrunnerupdate.simba ([beeeefc](https://github.com/Torwent/WaspLib/commit/beeeefc950277d1507b86bb0d203dfc79312753e))
 
 
 
