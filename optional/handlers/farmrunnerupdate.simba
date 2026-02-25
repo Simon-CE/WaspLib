@@ -1315,8 +1315,28 @@ procedure TFarmRun.OnStart(); begin
   if Self.StrongholdHerbPatch and not Self.HerbSeedEmpty then
     Self.FarmWithdrawHelper('Stony basalt', 1);
 
-  if ((Self.ArdyHerbPatch and not Self.HerbSeedEmpty) or (Self.ArdyFlowerPatch and not Self.FlowerSeedEmpty) or (Self.ArdyAllotmentPatches and not Self.AllotmentSeedEmpty)) and (not Self.ArdyCloakEquipped) and Self.ArdougneTP.Contains('cape') then
-    Self.FarmWithdrawHelper(Self.ArdyCloak, 1);
+  if ((Self.ArdyHerbPatch and not Self.HerbSeedEmpty) or (Self.ArdyFlowerPatch and not Self.FlowerSeedEmpty) or (Self.ArdyAllotmentPatches and not Self.AllotmentSeedEmpty)) then
+  begin
+    case Self.ArdougneTP of
+    'Normal spellbook TELEPORT':
+    begin
+      if not (Self.RunesInPouch.ContainsAny(['law']) and Self.RPouchMethod.Contains('pouch')) then
+        Self.FarmWithdrawHelper('Law rune', -1);
+
+      if not Self.InfiniteWater then
+        Self.FarmWithdrawHelper('Water rune', -1);
+    end;
+
+    'Ardougne TABLET':
+    Self.FarmWithdrawHelper('Ardougne teleport', 1);
+
+    'Ardougne cape':
+    begin
+      if not Self.ArdyCloakEquipped then
+        Self.FarmWithdrawHelper(Self.ArdyCloak, 1);
+    end;
+    end;
+  end;
 
   if (Self.FallyHerbPatch and not Self.HerbSeedEmpty) or (Self.FallyFlowerPatch and not Self.FlowerSeedEmpty) or (Self.FallyAllotmentPatches and not Self.AllotmentSeedEmpty) then
   begin
@@ -1610,7 +1630,7 @@ begin
         Minimap.SetCompassAngle(random(145,200));
         ZiplineObj.SelectOption(['eeth-grip'], 10);
 
-        if WaitUntil(ScriptWalker^.GetMyPos().InBox([9303, 530, 9657, 888]), 15, 10000) then
+        if WaitUntil((MyPos := ScriptWalker^.GetMyPos()).InBox([9350, 636, 9630, 753]), 15, 10000) then
           Break;
       end;
     end
@@ -1622,7 +1642,7 @@ begin
 
         BargeAttendant.SelectOption(['uick'], 10);
 
-        if WaitUntil(ScriptWalker^.GetMyPos().InBox([9113, 908, 9467, 1266]), 15, 5000) then
+        if WaitUntil((MyPos := ScriptWalker^.GetMyPos()).InBox([9113, 908, 9467, 1266]), 15, 5000) then
           Break;
       end;
     end
@@ -1636,7 +1656,7 @@ begin
           b := ([146,431,371,435]);
           Mouse.Click(b, MOUSE_LEFT);
 
-          if WaitUntil(ScriptWalker^.GetMyPos().InBox([9303, 530, 9657, 888]), 15, 5000) then begin
+          if WaitUntil((MyPos := ScriptWalker^.GetMyPos()).InBox([9350, 636, 9630, 753]), 15, 5000) then begin
             Minimap.SetCompassAngle(0,28);
             Break;
           end;
@@ -1644,7 +1664,7 @@ begin
       end;
     end
     else
-    if MyPos.InBox([9303, 530, 9657, 888]) then begin
+    if MyPos.InBox([9350, 636, 9630, 753]) then begin
       Minimap.SetCompassAngle(0,28);
       if Chat.HasContinue or (Chat.GetChatTitle.Len > 0) then begin
         if Chat.FindOption('Dive and walk', [CHAT_COLOR_BLACK]) then begin
@@ -1662,7 +1682,6 @@ begin
           Chat.ClickContinue(True);
           WaitUntil((not Chat.FindOption('airin', [CHAT_COLOR_BLACK])), 15, 5000);
         end;
-        WaitUntil((MyPos := ScriptWalker^.GetMyPos).InBox([1129, 5407, 1769, 5824]), 15, 5000);
       end else begin
         try
           if BoatyIsland.WalkSelectOption(['Dive'], 10) then
@@ -1681,7 +1700,7 @@ begin
 
       if (Stats.GetLevel(ERSSkill.AGILITY) < 74) then begin
         transporter.Run(RSTEleports.DIGSITE);
-        WaitUntil(ScriptWalker^.GetMyPos().InBox([8448, 2342, 9273, 2895]), 15, 10000);
+        WaitUntil((MyPos := ScriptWalker^.GetMyPos()).InBox([8448, 2342, 9273, 2895]), 15, 10000);
       end;
     end;
   end;
@@ -2705,6 +2724,8 @@ begin
           WaitUntil(RSInterface.IsOpen(), 10, 5000);
           b := [294,177,308,200];
           Mouse.Click(b, MOUSE_LEFT);
+          Wait(800,1600);
+          WaitUntil(Minimap.PercentBlack < 25, 115, 3500);
         end;
       end;
     ETravelMethod.HUNTER_CAPE:
@@ -2718,6 +2739,7 @@ begin
         end
         else
           Equipment.ClickItem(item, 'Hunter Guild');
+        Wait(800,1600);
         WaitUntil(Minimap.PercentBlack < 25, 115, 3500);
         ScriptWalker^.WalkPath([[330,6444], [370,6436], [402,6428], [410,6372]]);
       end;
@@ -2770,6 +2792,7 @@ begin
       end else
         ChooseOption.Select('Last-destination ');
        Wait(800,1600);
+       WaitUntil(Minimap.PercentBlack < 25, 15, 5000);
     end else if ('quetzal' in item) then begin
     if (c <= 0) then begin
       Self.WriteMsg('Out of quetzal charges. Skipping patch.');
