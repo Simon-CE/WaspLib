@@ -2585,15 +2585,19 @@ begin
       end;
     ETravelMethod.HOSIDIUS_TABLET:
       begin
-        item := 'Teleport to house';
+        item := 'Hosidius teleport';
         wait(250,500);
         if Inventory.ContainsItem(item) then
           Inventory.ClickItem(item, 'Outside');
       end;
     ETravelMethod.HOUSE_TELEPORT:
       begin
+        item := 'Teleport to house';
         wait(250,500);
-        Magic.CastSpell(ERSSpell.TELEPORT_TO_HOUSE, 'Outside');
+        if Inventory.ContainsItem(item) then
+          Inventory.ClickItem(item, 'Outside')
+        else
+          Magic.CastSpell(ERSSpell.TELEPORT_TO_HOUSE, 'Outside');
       end;
      ETravelMethod.CON_CAPE_HOSIDIUS:
       begin
