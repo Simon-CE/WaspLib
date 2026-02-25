@@ -325,7 +325,7 @@ begin
     [6080, 2923],
     CTS2(3108159, 13, 0.08, 1.39),
     'Ardy herb',
-    [5702, 2765, 6445, 3368]
+    [5795, 2795, 6285, 3291]
   ];
 
   PatchData[EFarmPatch.ARDY_FLOWER] := [
@@ -335,7 +335,7 @@ begin
     [6080, 2923],
     CTS2(3108159, 13, 0.08, 1.39),
     'Ardy flower',
-    [5702, 2765, 6445, 3368]
+    [5795, 2795, 6285, 3291]
   ];
 
   PatchData[EFarmPatch.ARDY_ALLOT_N] := [
@@ -345,7 +345,7 @@ begin
     [6080, 2923],
     CTS2(3108159, 13, 0.08, 1.39),
     'Ardougne north allotment',
-    [5702, 2765, 6445, 3368]
+    [5795, 2795, 6285, 3291]
   ];
 
   PatchData[EFarmPatch.ARDY_ALLOT_S] := [
@@ -355,7 +355,7 @@ begin
     [6080, 2923],
     CTS2(3108159, 13, 0.08, 1.39),
     'Ardougne south allotment',
-    [5702, 2765, 6445, 3368]
+    [5795, 2795, 6285, 3291]
   ];
 
 
@@ -1955,15 +1955,14 @@ begin
   if not ChooseOption.Select('Exchange') then
     Exit;
 
-  if not WaitUntil(RSInterface.IsOpen(), 15, 15000) then
+  if not WaitUntil(RSInterface.IsOpen, 15, 7500) then
     Exit;
 
   if BankPin.IsOpen then
     BankPin.Enter(Login.GetPlayer.Pin);
 
   if SRL.CountColor(CTS2(2154272, 1, 0.01, 0.01), boxes[Self.CompostMethod]) = 0 then begin
-    //TODO no green = no items
-    //downgrade compost?
+    //TODOdowngrade compost?
     TerminateScript('Out of compost');
   end;
 
