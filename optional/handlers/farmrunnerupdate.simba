@@ -2693,7 +2693,7 @@ begin
       end;
     ETravelMethod.QUETZAL_TELEPORT:
       begin
-        items := (['Basic quetzal whistle', 'Enhanced quetzal whistle', 'Perfected Basic quetzal whistle']);
+        items := (['Basic quetzal whistle', 'Enhanced quetzal whistle', 'Perfected quetzal whistle']);
         for item in items do
         wait(250,500);
         if Inventory.ContainsItem(item) then
